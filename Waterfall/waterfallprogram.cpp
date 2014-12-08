@@ -1,32 +1,38 @@
 #include "waterfallprogram.h"
 
 WaterfallProgram::WaterfallProgram()
+    : _lastFrameTP(chrono::system_clock::now())
 {
     initSettings();
     initAntTweakBar();
     initParticleSystem();
+}
 
-    _particleSystem.setMaxParticlesCount(100);
+void WaterfallProgram::initParticleSystem()
+{
+    _particleSystem.setMaxParticlesCount(1000);
+    setupParticleSystem();
     _particleSystem.initialize();
 }
 
 void WaterfallProgram::initSettings()
 {
-    _cameraZPosition = 80;
-    _cameraFOV = 45.0f;
+    _cameraZPosition = 100;
+    _cameraFOV = 60.0f;
 
     _emitterPosition = vec3(0.0f, 0.0f, 0.0f);
-    _emitterRadius = vec3(5.0f, 5.0f, 5.0f);
-    _minVelocity = vec3(0.0f, 0.0f, 0.0f);
-    _velocityRange = vec3(10.0f, 10.f, 10.f);
+    _emitterRadius = vec3(3.0f, 3.0f, 3.0f);
+    _minVelocity = vec3(5.0f, 0.0f, 0.0f);
+    _velocityRange = vec3(10.0f, 15.f, 0.0f);
     _gravity = vec3(0.0f, -9.8f, 0.0f);
 
-    _minLifeTime = 7;
-    _maxLifeTime = 20;
-    _minSize = 5;
-    _maxSize = 10;
+    _minLifeTime = 1;
+    _maxLifeTime = 7;
+    _minSize = 1;
+    _maxSize = 3;
 
     _particleColor = vec3(0.0f, 0.0f, 1.0f);
+    _particleOpacity = 0.4f;
 }
 
 void WaterfallProgram::initAntTweakBar()
@@ -36,8 +42,8 @@ void WaterfallProgram::initAntTweakBar()
     TwBar* bar = TwNewBar("Parameters");
     TwDefine(" Parameters size='500 1000' color='70 100 120' valueswidth=220 iconpos=topleft");
 
-    TwAddVarRW(bar, "Camera Z-position", TW_TYPE_INT32,  &_cameraZPosition, "keyincr=s keydecr=w min=10 max=150 step=1");
-    TwAddVarRW(bar, "FOV",               TW_TYPE_INT32,  &_cameraFOV,       "keyincr=o keydecr=p min=10 max=120 step=5");
+    TwAddVarRW(bar, "Camera Z-position", TW_TYPE_FLOAT,  &_cameraZPosition, "keyincr=s keydecr=w min=10 max=150 step=1");
+    TwAddVarRW(bar, "FOV",               TW_TYPE_FLOAT,  &_cameraFOV,       "keyincr=o keydecr=p min=10 max=150 step=5");
     TwAddVarRW(bar, "Rotation",          TW_TYPE_QUAT4F, &_rotation,        "label='Object orientation' opened=true");
 
     TwStructMember vec3Members[] = {
@@ -64,7 +70,6 @@ void WaterfallProgram::initAntTweakBar()
 
 void WaterfallProgram::setupParticleSystem()
 {
-    _particleSystem.setMaxParticlesCount(100);
     _particleSystem.setEmitterPosition(_emitterPosition);
     _particleSystem.setEmitterRadius(_emitterRadius);
     _particleSystem.setMinVelocity(_minVelocity);
@@ -75,24 +80,24 @@ void WaterfallProgram::setupParticleSystem()
     _particleSystem.setMinSize(_minSize);
     _particleSystem.setMaxSize(_maxSize);
     _particleSystem.setInitColor(_particleColor);
-    _particleSystem.setInitOpacity(_opacity);
+    _particleSystem.setInitOpacity(_particleOpacity);
 }
 
 void WaterfallProgram::drawFrame()
 {
+    setupParticleSystem();
     float timePassed = updateTimer();
     _particleSystem.updateParticles(timePassed);
 
     float const width = (float)glutGet(GLUT_WINDOW_WIDTH);
     float const height = (float)glutGet(GLUT_WINDOW_HEIGHT);
-    mat4 mProj = perspective(_cameraFOV, width / height, 0.1f, 100.0f);
+    mat4 mProj = perspective(_cameraFOV, width / height, 0.1f, 150.0f);
 
     vec3 cameraPosition = vec3(0, 0, _cameraZPosition);
     vec3 viewCenter = vec3(0, 0, 0);
     vec3 upVector = vec3(0, 1, 0);
 
-    setupParticleSystem();
-    _particleSystem.setMatrices(mProj, cameraPosition, viewCenter, upVector);
+    _particleSystem.setMatrices(mProj, cameraPosition, viewCenter, upVector, _rotation);
     _particleSystem.renderParticles();
 }
 

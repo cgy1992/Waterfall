@@ -26,13 +26,17 @@ class Texture
     int _magFilter;
     int _minFilter;
     string _textureFileName;
+    int _rowCount;
+    int _columnCount;
 
 public:
     Texture();
 
-    bool loadTexture(const string& textureFileName, bool mipmapRequired);
+    bool loadTexture(const string& textureFileName, bool mipmapRequired, int rowCount, int columnCount);
+    int rowCount();
+    int columnCount();
     void bindTexture(int textureUnit);
-
+    int textureUnit();
     void setFiltering(int magFilter, int minFilter);
 
     void releaseTexture();

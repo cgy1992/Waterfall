@@ -29,6 +29,7 @@ class WaterfallProgram
 
     void initSettings();
     void initAntTweakBar();
+    void initParticleSystem();
     void setupParticleSystem();
 
 public:

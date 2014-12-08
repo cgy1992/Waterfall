@@ -1,34 +1,34 @@
 #version 330
 
 layout (points) in;
-layout (points, max_vertices = 1) out;
+layout (points, max_vertices = 40) out;
 
-in vec3 position[];
-in vec3 velocity[];
-in vec3 color[];
+in float initRand[];
+in vec3  position[];
+in vec3  velocity[];
+in vec3  color[];
 in float fullLifeTime[];
 in float actualLifeTime[];
 in float size[];
 in float opacity[];
 
-out float initRandomOut;
-out vec3 positionOut;
-out vec3 velocityOut;
-out vec3 colorOut;
+out float initRandOut;
+out vec3  positionOut;
+out vec3  velocityOut;
+out vec3  colorOut;
 out float fullLifeTimeOut;
 out float actualLifeTimeOut;
 out float sizeOut;
 out float opacityOut;
 
 uniform float timePassed;
-uniform vec3 randomSeed;
 
-uniform vec3 emitterPosition;
-uniform vec3 emitterRadius;
-uniform vec3 gravity;
+uniform vec3  emitterPosition;
+uniform vec3  emitterRadius;
+uniform vec3  gravity;
 
-uniform vec3 minVelocity;
-uniform vec3 velocityRange;
+uniform vec3  minVelocity;
+uniform vec3  velocityRange;
 
 uniform float minLifeTime;
 uniform float maxLifeTime;
@@ -36,7 +36,7 @@ uniform float maxLifeTime;
 uniform float minSize;
 uniform float maxSize;
 
-uniform vec3 initColor;
+uniform vec3  initColor;
 uniform float initOpacity;
 
 vec3 localSeed;
@@ -78,8 +78,7 @@ float randomFromVec3(vec3 data)
 
 void main()
 {
-    localSeed = randomSeed;
-
+    initRandOut = initRand[0];
     fullLifeTimeOut = fullLifeTime[0];
     actualLifeTimeOut = actualLifeTime[0] + timePassed;
     if (actualLifeTimeOut < fullLifeTimeOut) {
@@ -92,12 +91,12 @@ void main()
         opacityOut = computeOpacity(relativeLifeTime);
     }
     else {
-        positionOut = emitterPosition + randomFromVec3(emitterRadius);
-        velocityOut = minVelocity + randomFromVec3(velocityRange);
+        positionOut = emitterPosition + emitterRadius * initRandOut;
+        velocityOut = minVelocity + velocityRange * initRandOut;
         colorOut = initColor;
-        fullLifeTimeOut = minLifeTime + (maxLifeTime - minLifeTime) * random01();
+        fullLifeTimeOut = minLifeTime + (maxLifeTime - minLifeTime) * abs(initRandOut);
         actualLifeTimeOut = 0;
-        sizeOut = minSize + (maxSize - minSize) * random01();
+        sizeOut = minSize + (maxSize - minSize) * abs(initRandOut);
         opacityOut = initOpacity;
     }
 

@@ -5,13 +5,14 @@
 #include "shaders.h"
 #include "texture.h"
 
-#define PARTICLE_ATTRIBUTES_COUNT 7
+static const int PARTICLE_ATTRIBUTES_COUNT = 8;
+static const int SERIALIZED_PARTICLE_SIZE = 14; // 3 * sizeof(vec3) + 5 * sizeof(GLfloat);
 
 struct Particle
 {
     Particle();
 
-    float initRandom;
+    GLfloat initRand;
     vec3 position;
     vec3 velocity;
     vec3 color;
@@ -27,7 +28,8 @@ class ParticleSystem
     int _curReadBuffer;
 
     vector<Particle> _particles;
-    vector<char> _particlesData;
+    GLfloat* _particlesData;
+    int _particlesDataSize;
     int _maxParticlesCount;
 
     vec3 _emitterPosition;
@@ -57,7 +59,7 @@ class ParticleSystem
 
 public:
     ParticleSystem();
-    ParticleSystem(int maxParticleSystem);
+    ~ParticleSystem();
 
     void initialize();
     void generateParticles();
@@ -74,7 +76,7 @@ public:
     void setMaxSize(float maxSize);
     void setInitColor(vec3 color);
     void setInitOpacity(float opacity);
-    void setMatrices(mat4 mProj, vec3 camera, vec3 view, vec3 upVector);
+    void setMatrices(mat4 mProj, vec3 camera, vec3 view, vec3 upVector, quat rotation);
 
     void updateParticles(float timePassed);
     void renderParticles();

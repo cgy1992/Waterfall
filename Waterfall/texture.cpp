@@ -1,10 +1,10 @@
 #include "texture.h"
 
 Texture::Texture()
-    : _textureUnit(-1), _mipmapGenerated(false), _magFilter(NO_TEXTURE_FILTER), _minFilter(NO_TEXTURE_FILTER)
+    : _textureUnit(-1), _mipmapGenerated(false), _magFilter(NO_TEXTURE_FILTER), _minFilter(NO_TEXTURE_FILTER), _textureFileName(""), _rowCount(0), _columnCount(0)
 {}
 
-bool Texture::loadTexture(const string& textureFileName, bool mipmapRequired)
+bool Texture::loadTexture(const string& textureFileName, bool mipmapRequired, int rowCount, int columnCount)
 {
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
     FIBITMAP* dib = NULL;
@@ -66,8 +66,20 @@ bool Texture::loadTexture(const string& textureFileName, bool mipmapRequired)
 
     _textureUnit = 0;
     _textureFileName = textureFileName;
+    _rowCount = rowCount;
+    _columnCount = columnCount;
 
     return true;
+}
+
+int Texture::rowCount()
+{
+    return _rowCount;
+}
+
+int Texture::columnCount()
+{
+    return _columnCount;
 }
 
 void Texture::bindTexture(int textureUnit)
@@ -76,6 +88,11 @@ void Texture::bindTexture(int textureUnit)
     glBindTexture(GL_TEXTURE_2D, _texture);
     glBindSampler(textureUnit, _sampler);
     _textureUnit = textureUnit;
+}
+
+int Texture::textureUnit()
+{
+    return _textureUnit;
 }
 
 void Texture::setFiltering(int magFilter, int minFilter)
