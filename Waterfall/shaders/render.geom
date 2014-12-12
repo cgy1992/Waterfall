@@ -1,10 +1,8 @@
 #version 330
 
 layout (points) in;
-layout (triangle_strip, max_vertices = 40) out;
+layout (triangle_strip, max_vertices = 4) out;
 
-in float initRand[];
-in vec3 velocity[];
 in vec3 color[];
 in float fullLifeTime[];
 in float actualLifeTime[];

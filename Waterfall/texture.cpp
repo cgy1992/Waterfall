@@ -1,10 +1,10 @@
 #include "texture.h"
 
-Texture::Texture()
+TextureAtlas::TextureAtlas()
     : _textureUnit(-1), _mipmapGenerated(false), _magFilter(NO_TEXTURE_FILTER), _minFilter(NO_TEXTURE_FILTER), _textureFileName(""), _rowCount(0), _columnCount(0)
 {}
 
-bool Texture::loadTexture(const string& textureFileName, bool mipmapRequired, int rowCount, int columnCount)
+bool TextureAtlas::loadTexture(const string& textureFileName, bool mipmapRequired, int rowCount, int columnCount)
 {
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
     FIBITMAP* dib = NULL;
@@ -72,17 +72,17 @@ bool Texture::loadTexture(const string& textureFileName, bool mipmapRequired, in
     return true;
 }
 
-int Texture::rowCount()
+int TextureAtlas::rowCount()
 {
     return _rowCount;
 }
 
-int Texture::columnCount()
+int TextureAtlas::columnCount()
 {
     return _columnCount;
 }
 
-void Texture::bindTexture(int textureUnit)
+void TextureAtlas::bindTexture(int textureUnit)
 {
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, _texture);
@@ -90,12 +90,12 @@ void Texture::bindTexture(int textureUnit)
     _textureUnit = textureUnit;
 }
 
-int Texture::textureUnit()
+int TextureAtlas::textureUnit()
 {
     return _textureUnit;
 }
 
-void Texture::setFiltering(int magFilter, int minFilter)
+void TextureAtlas::setFiltering(int magFilter, int minFilter)
 {
     switch (magFilter) {
     case TEXTURE_FILTER_MAG_NEAREST:
@@ -128,22 +128,8 @@ void Texture::setFiltering(int magFilter, int minFilter)
     }
 }
 
-void Texture::releaseTexture()
+void TextureAtlas::releaseTexture()
 {
     glDeleteSamplers(1, &_sampler);
     glDeleteTextures(1, &_texture);
-}
-
-TextureAtlas::TextureAtlas(Texture const & texture, int rowCount, int columnCount)
-    : Texture(texture), _rowCount(rowCount), _columnCount(columnCount)
-{}
-
-int TextureAtlas::getRowCount()
-{
-    return _rowCount;
-}
-
-int TextureAtlas::getColumnCount()
-{
-    return _columnCount;
 }

@@ -1,6 +1,6 @@
 #include "waterfallprogram.h"
 
-#define PARTICLES_COUNT 100
+#define PARTICLES_COUNT 1
 
 WaterfallProgram::WaterfallProgram()
     : _lastFrameTP(chrono::system_clock::now())
@@ -13,6 +13,7 @@ WaterfallProgram::WaterfallProgram()
 void WaterfallProgram::initParticleSystem()
 {
     setupParticleSystem();
+    _particleSystem.loadTextureAtlas("textures//bang_ta.png", 8, 8);
     _particleSystem.initialize(PARTICLES_COUNT);
 }
 
@@ -21,16 +22,16 @@ void WaterfallProgram::initSettings()
     _cameraZPosition = 100;
     _cameraFOV = 60.0f;
 
-    _emitterPosition = vec3(0.0f, 50.0f, 0.0f);
-    _emitterVicinity   = vec3(50.0f, 0.0f, 0.0f);
-    _averageVelocity     = vec3(0.0f, 0.0f, 0.0f);
-    _velocityVicinity   = vec3(5.0f, 5.0f, 0.0f);
-    _gravity         = vec3(0.0f, -9.0f, 0.0f);
+    _emitterPosition  = vec3(0.0f, 10.0f, 0.0f);
+    _emitterVicinity  = vec3(10.0f, 0.0f, 0.0f);
+    _averageVelocity  = vec3(-0.0f, -0.0f, 0.0f);
+    _velocityVicinity = vec3(-0.0f, -0.0f, 0.0f);
+    _gravity          = vec3(0.0f, -9.0f, 0.0f);
 
     _minLifeTime = 3;
     _maxLifeTime = 7;
     _minSize = 5;
-    _maxSize = 10;
+    _maxSize = 5;
 
     _particleColor = vec3(0.0f, 0.0f, 0.5f);
     _particleOpacity = 0.4f;

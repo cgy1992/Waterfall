@@ -24,7 +24,7 @@ bool WShader::createShader(GLenum type, const string& fileName)
             string buffer;
             buffer.resize(infoLogLength);
             glGetShaderInfoLog(_shader, infoLogLength, NULL, &buffer[0]);
-            throw std::runtime_error(buffer);
+            throw std::runtime_error(fileName + ": " + buffer);
         }
     }
 

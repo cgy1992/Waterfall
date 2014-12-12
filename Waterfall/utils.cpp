@@ -48,17 +48,15 @@ size_t serializeGLfloat(GLfloat* buf, GLfloat value)
 {
     *(buf) = value;
 
-    return sizeof(GLfloat);
+    return 1;
 }
 
 size_t serializeVec3(GLfloat* buf, vec3 v)
 {
-    size_t offset = 0;
     for (size_t i = 0; i < 3; ++i) {
         GLfloat value = v[i];
-        *(buf + offset) = value;
-        offset += sizeof(GLfloat);
+        *(buf + i) = value;
     }
 
-    return offset;
+    return 3;
 }

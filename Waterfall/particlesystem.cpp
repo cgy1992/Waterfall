@@ -39,7 +39,7 @@ size_t Particle::serialize(GLfloat* buf)
     index += serializeGLfloat(buf + index, maxSize);
     index += serializeGLfloat(buf + index, opacity);
 
-    assert(index == Particle::serializedSize());
+    assert(index == PARTICLE_SERIALIZED_GLFLOAT_COUNT);
     return index;
 }
 
@@ -71,12 +71,12 @@ void ParticleSystem::generateParticles()
         throw std::runtime_error("Try to generate non-positive count of particles...");
     }
 
-    _particlesDataSize = Particle::serializedSize() * _maxParticlesCount;
+    _particlesDataSize = PARTICLE_SERIALIZED_GLFLOAT_COUNT * _maxParticlesCount;
     _particlesData     = new GLfloat[_particlesDataSize];
 
     size_t offset = 0;
     int RAND_PRECISION = RAND_MAX;
-    for (int p = 0; p < _maxParticlesCount; ++p) {
+    for (size_t p = 0; p < _maxParticlesCount; ++p) {
         Particle particle;
         particle.randInit = getRandomRange(-1, 1, RAND_PRECISION);
         particle.positionInit = getRandomValueVicinityVec3(emitterPosition, emitterVicinity, RAND_PRECISION);
@@ -87,8 +87,8 @@ void ParticleSystem::generateParticles()
         particle.fullLifeTime = getRandomRange(minLifeTime, maxLifeTime, RAND_PRECISION);
         particle.actualLifeTime = particle.fullLifeTime * getRandom01(RAND_PRECISION);
         particle.size = 0;
-        particle.minSize = minSize * (1 + getRandomRange(-0.5, 0.5, RAND_PRECISION)); 
-        particle.maxSize = maxSize * (1 + getRandomRange(-0.5, 0.5, RAND_PRECISION));
+        particle.minSize = minSize;// *(1 + getRandomRange(-0.5, 0.5, RAND_PRECISION));
+        particle.maxSize = maxSize;// *(1 + getRandomRange(-0.5, 0.5, RAND_PRECISION));
         particle.opacity = 0;
 
         offset += particle.serialize(_particlesData + offset);
@@ -187,8 +187,12 @@ void ParticleSystem::updateParticles(float timePassed)
     glGenQueries(1, &query);
 
     glBindVertexArray(_VAOs[_curReadBuffer]);
-    //glEnableVertexAttribArray(0);
-    //glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
+    glEnableVertexAttribArray(9);
+    glEnableVertexAttribArray(10);
     
     glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, _transformFeedbackBuffer);
     glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, _particlesBuffers[1 - _curReadBuffer]);
@@ -210,11 +214,11 @@ void ParticleSystem::updateParticles(float timePassed)
     glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
     glBindVertexArray(0);
 
-    //glBindBuffer(GL_ARRAY_BUFFER, _particlesBuffers[1-_curReadBuffer]);
-    //GLfloat data[14 * 3];
-    //glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
-    //int i = 0;
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, _particlesBuffers[1 - _curReadBuffer]);
+    GLfloat data[22];
+    glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
+    int i = 0;
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ParticleSystem::renderParticles()
@@ -246,8 +250,12 @@ void ParticleSystem::renderParticles()
     _programRender.setUniform("tSampler", _texture.textureUnit());
 
     glBindVertexArray(_VAOs[_curReadBuffer]);
-    //glDisableVertexAttribArray(0);
-    //glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
+    glDisableVertexAttribArray(9);
+    glDisableVertexAttribArray(10);
 
     glDrawArrays(GL_POINTS, 0, _maxParticlesCount);
 
@@ -263,7 +271,7 @@ void ParticleSystem::setMaxParticlesCount(int maxParticlesCount)
 void ParticleSystem::setMatrices(mat4 mProj, vec3 eye, vec3 viewCenter, vec3 upVector, quat rotation)
 {
     this->mProj = mProj;
-    mView = lookAt(eye, viewCenter, upVector); // *mat4_cast(rotation);
+    mView = lookAt(eye, viewCenter, upVector); // * mat4_cast(rotation);
 
     vec3 viewDirection = viewCenter - eye;
     _quad1 = cross(viewDirection, upVector);

@@ -5,7 +5,8 @@
 #include "shaders.h"
 #include "texture.h"
 
-static const int PARTICLE_ATTRIBUTES_COUNT = 12;
+static const size_t PARTICLE_ATTRIBUTES_COUNT = 12;
+static const size_t PARTICLE_SERIALIZED_GLFLOAT_COUNT = 22;
 
 struct Particle
 {
@@ -63,17 +64,6 @@ public:
     void loadTextureAtlas(string const& fileName, size_t rowCount, size_t columnCount);
     
     void setMaxParticlesCount(int maxParticlesCount);
-    void setEmitterPosition(vec3 emitterPosition);
-    void setEmitterRadius(vec3 emitterRadius);
-    void setMinVelocity(vec3 minVelocity);
-    void setVelocityRange(vec3 velocityRange);
-    void setGravity(vec3 gravity);
-    void setMinLifeTime(float minLifeTime);
-    void setMaxLifeTime(float maxLifeTime);
-    void setMinSize(float minSize);
-    void setMaxSize(float maxSize);
-    void setInitColor(vec3 color);
-    void setInitOpacity(float opacity);
     void setMatrices(mat4 mProj, vec3 camera, vec3 view, vec3 upVector, quat rotation);
 
     void updateParticles(float timePassed);

@@ -12,5 +12,7 @@ out vec4 colorFragOut;
 void main()
 {
     vec4 textureMix = mix(texture(tSampler, texPrevCoord), texture(tSampler, texNextCoord), texNextSimilarity);
-    colorFragOut = textureMix * colorFragIn;
+    colorFragOut = textureMix; // * colorFragIn;
+
+    //colorFragOut = vec4(texPrevCoord, 0.0f, 1.0f);
 }

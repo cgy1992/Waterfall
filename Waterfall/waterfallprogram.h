@@ -13,9 +13,9 @@ class WaterfallProgram
     quat _rotation;
 
     vec3 _emitterPosition;
-    vec3 _emitterRadius;
-    vec3 _minVelocity;
-    vec3 _velocityRange;
+    vec3 _emitterVicinity;
+    vec3 _averageVelocity;
+    vec3 _velocityVicinity;
     vec3 _gravity;
     float _minLifeTime;
     float _maxLifeTime;
