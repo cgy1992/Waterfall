@@ -1,6 +1,6 @@
 #include "waterfallprogram.h"
 
-#define PARTICLES_COUNT 1
+#define PARTICLES_COUNT 100
 
 WaterfallProgram::WaterfallProgram()
     : _lastFrameTP(chrono::system_clock::now())
@@ -22,18 +22,18 @@ void WaterfallProgram::initSettings()
     _cameraZPosition = 100;
     _cameraFOV = 60.0f;
 
-    _emitterPosition  = vec3(0.0f, 10.0f, 0.0f);
+    _emitterPosition  = vec3(0.0f, 50.0f, 0.0f);
     _emitterVicinity  = vec3(10.0f, 0.0f, 0.0f);
-    _averageVelocity  = vec3(-0.0f, -0.0f, 0.0f);
-    _velocityVicinity = vec3(-0.0f, -0.0f, 0.0f);
+    _averageVelocity  = vec3(0.0f, -10.0f, 0.0f);
+    _velocityVicinity = vec3(10.0f, 0.0f, 0.0f);
     _gravity          = vec3(0.0f, -9.0f, 0.0f);
 
     _minLifeTime = 3;
-    _maxLifeTime = 7;
+    _maxLifeTime = 5;
     _minSize = 5;
-    _maxSize = 5;
+    _maxSize = 10;
 
-    _particleColor = vec3(0.0f, 0.0f, 0.5f);
+    _particleColor = vec3(1.0f, 1.0f, 1.0f);
     _particleOpacity = 0.4f;
 }
 

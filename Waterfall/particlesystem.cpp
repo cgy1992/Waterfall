@@ -83,12 +83,12 @@ void ParticleSystem::generateParticles()
         particle.position = vec3(0.0f, 0.0f, 0.0f);
         particle.velocityInit = getRandomValueVicinityVec3(averageVelocity, velocityVicinity, RAND_PRECISION);
         particle.velocity = vec3(0.0f, 0.0f, 0.0f);
-        particle.color = getRandom01Vec3(RAND_PRECISION) * colorInit;
+        particle.color = colorInit;// *getRandom01Vec3(RAND_PRECISION);
         particle.fullLifeTime = getRandomRange(minLifeTime, maxLifeTime, RAND_PRECISION);
         particle.actualLifeTime = particle.fullLifeTime * getRandom01(RAND_PRECISION);
         particle.size = 0;
         particle.minSize = minSize;// *(1 + getRandomRange(-0.5, 0.5, RAND_PRECISION));
-        particle.maxSize = maxSize;// *(1 + getRandomRange(-0.5, 0.5, RAND_PRECISION));
+        particle.maxSize = maxSize * (1 + getRandomRange(0, 0.5, RAND_PRECISION));
         particle.opacity = 0;
 
         offset += particle.serialize(_particlesData + offset);
