@@ -83,12 +83,12 @@ void ParticleSystem::generateParticles()
         particle.position = vec3(0.0f, 0.0f, 0.0f);
         particle.velocityInit = getRandomValueVicinityVec3(averageVelocity, velocityVicinity, RAND_PRECISION);
         particle.velocity = vec3(0.0f, 0.0f, 0.0f);
-        particle.color = colorInit;// *getRandom01Vec3(RAND_PRECISION);
+        particle.color = colorInit;// * getRandom01Vec3(RAND_PRECISION);
         particle.fullLifeTime = getRandomRange(minLifeTime, maxLifeTime, RAND_PRECISION);
         particle.actualLifeTime = particle.fullLifeTime * getRandom01(RAND_PRECISION);
         particle.size = 0;
-        particle.minSize = minSize;// *(1 + getRandomRange(-0.5, 0.5, RAND_PRECISION));
-        particle.maxSize = maxSize * (1 + getRandomRange(0, 0.5, RAND_PRECISION));
+        particle.minSize = minSize + (maxSize - minSize) * getRandomRange(0, 0.5, RAND_PRECISION);
+        particle.maxSize = maxSize + (maxSize - minSize) * getRandomRange(0, 0.5, RAND_PRECISION);
         particle.opacity = 0;
 
         offset += particle.serialize(_particlesData + offset);
@@ -214,11 +214,11 @@ void ParticleSystem::updateParticles(float timePassed)
     glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
     glBindVertexArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, _particlesBuffers[1 - _curReadBuffer]);
-    GLfloat data[22];
-    glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
-    int i = 0;
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, _particlesBuffers[1 - _curReadBuffer]);
+    //GLfloat data[22];
+    //glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
+    //int i = 0;
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ParticleSystem::renderParticles()
@@ -239,7 +239,7 @@ void ParticleSystem::renderParticles()
     glDepthMask(0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     _programRender.setUniform("texRowCount", _texture.rowCount());
     _programRender.setUniform("texColumnCount", _texture.columnCount());

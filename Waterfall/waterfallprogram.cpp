@@ -1,6 +1,6 @@
 #include "waterfallprogram.h"
 
-#define PARTICLES_COUNT 100
+#define PARTICLES_COUNT 10000
 
 WaterfallProgram::WaterfallProgram()
     : _lastFrameTP(chrono::system_clock::now())
@@ -13,7 +13,9 @@ WaterfallProgram::WaterfallProgram()
 void WaterfallProgram::initParticleSystem()
 {
     setupParticleSystem();
-    _particleSystem.loadTextureAtlas("textures//bang_ta.png", 8, 8);
+    //_particleSystem.loadTextureAtlas("textures//bang_ta.png", 8, 8);
+    _particleSystem.loadTextureAtlas("textures//water1.jpg", 1, 1);
+    //_particleSystem.loadTextureAtlas("textures//water_sprite.png", 4, 4);
     _particleSystem.initialize(PARTICLES_COUNT);
 }
 
@@ -29,11 +31,11 @@ void WaterfallProgram::initSettings()
     _gravity          = vec3(0.0f, -9.0f, 0.0f);
 
     _minLifeTime = 3;
-    _maxLifeTime = 5;
-    _minSize = 5;
-    _maxSize = 10;
+    _maxLifeTime = 7;
+    _minSize = 0.2;
+    _maxSize = 0.5;
 
-    _particleColor = vec3(1.0f, 1.0f, 1.0f);
+    _particleColor = vec3(0.0f, 1.0f, 1.0f);
     _particleOpacity = 0.4f;
 }
 

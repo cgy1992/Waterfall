@@ -16,6 +16,7 @@ bool TextureAtlas::loadTexture(const string& textureFileName, bool mipmapRequire
     }
 
     if (fif == FIF_UNKNOWN) {
+        throw std::runtime_error("Unknown image format: " + textureFileName);
         return false;
     }
 
@@ -24,6 +25,7 @@ bool TextureAtlas::loadTexture(const string& textureFileName, bool mipmapRequire
     }
 
     if (!dib) {
+        throw std::runtime_error("Can't load image: " + textureFileName);
         return false;
     }
 
@@ -37,6 +39,7 @@ bool TextureAtlas::loadTexture(const string& textureFileName, bool mipmapRequire
     _bpp = FreeImage_GetBPP(dib);
 
     if (data == NULL || _width == 0 || _height == 0) {
+        throw std::runtime_error("Can't retrieve info from image: " + textureFileName);
         return false;
     }
 
