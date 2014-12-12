@@ -1,16 +1,54 @@
 #include "particlesystem.h"
 #include "common.h"
+#include "utils.h"
 
-Particle::Particle()
-    : position(0, 0, 0), velocity(0, 0, 0), color(0, 0, 0), fullLifeTime(0), actualLifeTime(0), size(0), opacity(0)
-{}
+size_t Particle::serializedSize()
+{
+    static const size_t serializedSize =
+        sizeof(GLfloat)    // randInit
+        + sizeof(vec3)     // positionInit
+        + sizeof(vec3)     // position
+        + sizeof(vec3)     // velocityInit
+        + sizeof(vec3)     // velocity
+        + sizeof(vec3)     // color
+        + sizeof(GLfloat)  // fullLifeTime
+        + sizeof(GLfloat)  // actualLifeTime
+        + sizeof(GLfloat)  // size
+        + sizeof(GLfloat)  // minSize
+        + sizeof(GLfloat)  // maxSize
+        + sizeof(GLfloat)  // opacity
+        ;
+
+    return serializedSize;
+}
+
+size_t Particle::serialize(GLfloat* buf)
+{
+    size_t index = 0;
+
+    index += serializeGLfloat(buf + index, randInit);
+    index += serializeVec3(buf + index, positionInit);
+    index += serializeVec3(buf + index, position);
+    index += serializeVec3(buf + index, velocityInit);
+    index += serializeVec3(buf + index, velocity);
+    index += serializeVec3(buf + index, color);
+    index += serializeGLfloat(buf + index, fullLifeTime);
+    index += serializeGLfloat(buf + index, actualLifeTime);
+    index += serializeGLfloat(buf + index, size);
+    index += serializeGLfloat(buf + index, minSize);
+    index += serializeGLfloat(buf + index, maxSize);
+    index += serializeGLfloat(buf + index, opacity);
+
+    assert(index == Particle::serializedSize());
+    return index;
+}
 
 ParticleSystem::ParticleSystem()
-    : _isInitialized(false), _curReadBuffer(0), _particlesData(NULL)
+    : _isInitialized(false)
+    , _maxParticlesCount(0)
+    , _particlesDataSize(0)
+    , _particlesData(NULL)
 {
-    _texture.loadTexture("textures//bang_ta.png", false, 8, 8);
-    _texture.bindTexture(0);
-    _texture.setFiltering(TEXTURE_FILTER_MAG_LINEAR, TEXTURE_FILTER_MIN_LINEAR);
 }
 
 ParticleSystem::~ParticleSystem()
@@ -20,75 +58,62 @@ ParticleSystem::~ParticleSystem()
     }
 }
 
+void ParticleSystem::loadTextureAtlas(string const& fileName, size_t rowCount, size_t columnCount)
+{
+    _texture.loadTexture(fileName, false, rowCount, columnCount);
+    _texture.bindTexture(0);
+    _texture.setFiltering(TEXTURE_FILTER_MAG_LINEAR, TEXTURE_FILTER_MIN_LINEAR);
+}
+
 void ParticleSystem::generateParticles()
 {
     if (_maxParticlesCount <= 0) {
         throw std::runtime_error("Try to generate non-positive count of particles...");
     }
 
-    _particlesDataSize = SERIALIZED_PARTICLE_SIZE * _maxParticlesCount;
-    _particlesData = new GLfloat[_particlesDataSize];
+    _particlesDataSize = Particle::serializedSize() * _maxParticlesCount;
+    _particlesData     = new GLfloat[_particlesDataSize];
 
-    srand(time(NULL));
-    size_t index = 0;
+    size_t offset = 0;
     int RAND_PRECISION = RAND_MAX;
     for (int p = 0; p < _maxParticlesCount; ++p) {
-        GLfloat initRand = 2.0 * (rand() % RAND_PRECISION) / RAND_PRECISION - 1; //from -1 to 1
-        cout << initRand << endl;
-        vec3 position = _emitterPosition + _emitterRadius * initRand;
-        vec3 velocity = _minVelocity + initRand * _velocityRange;
-        vec3 color = _initColor * initRand;
-        GLfloat fullLifeTime = _minLifeTime + (_maxLifeTime - _minLifeTime) * abs(initRand);
-        GLfloat actualLifeTime = 0;  fullLifeTime * abs(initRand);
-        GLfloat size = _minSize + (_maxSize - _minSize) * abs(initRand);
-        GLfloat opacity = _initOpacity;
+        Particle particle;
+        particle.randInit = getRandomRange(-1, 1, RAND_PRECISION);
+        particle.positionInit = getRandomValueVicinityVec3(emitterPosition, emitterVicinity, RAND_PRECISION);
+        particle.position = vec3(0.0f, 0.0f, 0.0f);
+        particle.velocityInit = getRandomValueVicinityVec3(averageVelocity, velocityVicinity, RAND_PRECISION);
+        particle.velocity = vec3(0.0f, 0.0f, 0.0f);
+        particle.color = getRandom01Vec3(RAND_PRECISION) * colorInit;
+        particle.fullLifeTime = getRandomRange(minLifeTime, maxLifeTime, RAND_PRECISION);
+        particle.actualLifeTime = particle.fullLifeTime * getRandom01(RAND_PRECISION);
+        particle.size = 0;
+        particle.minSize = minSize * (1 + getRandomRange(-0.5, 0.5, RAND_PRECISION)); 
+        particle.maxSize = maxSize * (1 + getRandomRange(-0.5, 0.5, RAND_PRECISION));
+        particle.opacity = 0;
 
-        *(_particlesData + index) = initRand; index += 1;
-        *(_particlesData + index) = position.x; index += 1;
-        *(_particlesData + index) = position.y; index += 1;
-        *(_particlesData + index) = position.z; index += 1;
-        *(_particlesData + index) = velocity.x; index += 1;
-        *(_particlesData + index) = velocity.y; index += 1;
-        *(_particlesData + index) = velocity.z; index += 1;
-        *(_particlesData + index) = color.r; index += 1;
-        *(_particlesData + index) = color.g; index += 1;
-        *(_particlesData + index) = color.b; index += 1;
-        *(_particlesData + index) = fullLifeTime; index += 1;
-        *(_particlesData + index) = actualLifeTime; index += 1;
-        *(_particlesData + index) = size; index += 1;
-        *(_particlesData + index) = opacity; index += 1;
-
-
-/*
-        memcpy(_particlesData + index, &initRand, sizeof(GLfloat)); index += sizeof(GLfloat);
-        memcpy(_particlesData + index, &position, sizeof(vec3)); index += sizeof(vec3);
-        memcpy(_particlesData + index, &velocity, sizeof(vec3)); index += sizeof(vec3);
-        memcpy(_particlesData + index, &color, sizeof(vec3)); index += sizeof(vec3);
-        memcpy(_particlesData + index, &fullLifeTime, sizeof(GLfloat)); index += sizeof(GLfloat);
-        memcpy(_particlesData + index, &actualLifeTime, sizeof(GLfloat)); index += sizeof(GLfloat);
-        memcpy(_particlesData + index, &size, sizeof(GLfloat)); index += sizeof(GLfloat);
-        memcpy(_particlesData + index, &opacity, sizeof(GLfloat)); index += sizeof(GLfloat);*/
+        offset += particle.serialize(_particlesData + offset);
     }
 
-    assert(index == _particlesDataSize);
+    assert(offset == _particlesDataSize);
 }
 
-void ParticleSystem::initialize()
+void ParticleSystem::initialize(size_t particlesCount)
 {
     if (_isInitialized) {
         return;
     }
 
+    _maxParticlesCount = particlesCount;
     generateParticles();
 
     const char* varyings[PARTICLE_ATTRIBUTES_COUNT] = {
-        "initRandOut",
-        "positionOut",
-        "velocityOut",
+        "randInitOut",
+        "positionInitOut", "positionOut",
+        "velocityInitOut", "velocityOut",
         "colorOut",
         "fullLifeTimeOut",
         "actualLifeTimeOut",
-        "sizeOut",
+        "sizeOut", "minSizeOut", "maxSizeOut",
         "opacityOut"
     };
 
@@ -114,7 +139,6 @@ void ParticleSystem::initialize()
     _programRender.linkProgram();
 
     glGenTransformFeedbacks(1, &_transformFeedbackBuffer);
-
     glGenBuffers(2, _particlesBuffers);
     glGenVertexArrays(2, _VAOs);
 
@@ -127,14 +151,18 @@ void ParticleSystem::initialize()
             glEnableVertexAttribArray(i);
         }
 
-        glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)0); //initRand
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)sizeof(GLfloat)); //position
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)(4 * sizeof(GLfloat))); //velocity
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)(7 * sizeof(GLfloat))); //color
-        glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)(10 * sizeof(GLfloat))); //fullLifeTime
-        glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)(11 * sizeof(GLfloat))); //actualLifeTime
-        glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)(12 * sizeof(GLfloat))); //size
-        glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, SERIALIZED_PARTICLE_SIZE * sizeof(GLfloat), (const GLvoid*)(13 * sizeof(GLfloat))); //opacity
+        glVertexAttribPointer(0,  1, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(0  * sizeof(GLfloat)));  //randInit
+        glVertexAttribPointer(1,  3, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(1  * sizeof(GLfloat)));  //positionInit
+        glVertexAttribPointer(2,  3, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(4  * sizeof(GLfloat)));  //position
+        glVertexAttribPointer(3,  3, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(7  * sizeof(GLfloat)));  //velocityInit
+        glVertexAttribPointer(4,  3, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(10 * sizeof(GLfloat)));  //velocity
+        glVertexAttribPointer(5,  3, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(13 * sizeof(GLfloat)));  //color
+        glVertexAttribPointer(6,  1, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(16 * sizeof(GLfloat)));  //fullLifeTime
+        glVertexAttribPointer(7,  1, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(17 * sizeof(GLfloat)));  //actualLifeTime
+        glVertexAttribPointer(8,  1, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(18 * sizeof(GLfloat)));  //size
+        glVertexAttribPointer(9,  1, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(19 * sizeof(GLfloat)));  //minSize
+        glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(20 * sizeof(GLfloat)));  //maxSize
+        glVertexAttribPointer(11, 1, GL_FLOAT, GL_FALSE, Particle::serializedSize(), (const GLvoid*)(21 * sizeof(GLfloat)));  //opacity
 
         glBindVertexArray(0);
     }
@@ -151,51 +179,36 @@ void ParticleSystem::updateParticles(float timePassed)
 
     _programUpdate.useProgram();
     _programUpdate.setUniform("timePassed", timePassed);
-    
-    _programUpdate.setUniform("emitterPosition", _emitterPosition);
-    _programUpdate.setUniform("emitterRadius", _emitterRadius);
-
-    _programUpdate.setUniform("minVelocity", _minVelocity);
-    _programUpdate.setUniform("velocityRange", _velocityRange);
-    _programUpdate.setUniform("gravity", _gravity);
-    
-    _programUpdate.setUniform("minLifeTime", _minLifeTime);
-    _programUpdate.setUniform("maxLifeTime", _maxLifeTime);
-    _programUpdate.setUniform("minSize", _minSize);
-    _programUpdate.setUniform("maxSize", _maxSize);
-
-    _programUpdate.setUniform("initColor", _initColor);
-    _programUpdate.setUniform("initOpacity", _initOpacity);
+    _programUpdate.setUniform("gravity",    gravity);
 
     glEnable(GL_RASTERIZER_DISCARD);
 
     GLuint query;
     glGenQueries(1, &query);
 
-    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, _transformFeedbackBuffer);
-
     glBindVertexArray(_VAOs[_curReadBuffer]);
     //glEnableVertexAttribArray(0);
     //glEnableVertexAttribArray(2);
-
+    
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, _transformFeedbackBuffer);
     glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, _particlesBuffers[1 - _curReadBuffer]);
+    
     glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
     glBeginTransformFeedback(GL_POINTS);
 
     glDrawArrays(GL_POINTS, 0, _maxParticlesCount);
 
     glEndTransformFeedback();
-
     glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
     
     _curReadBuffer = 1 - _curReadBuffer;
 
-    GLuint primitives;
-    glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitives);
-    //cout << "Generated primitives: " << primitives << endl;
-
+    GLuint primitivesCount;
+    glGetQueryObjectuiv(query, GL_QUERY_RESULT, &primitivesCount);
+    assert(primitivesCount == _maxParticlesCount);
 
     glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+    glBindVertexArray(0);
 
     //glBindBuffer(GL_ARRAY_BUFFER, _particlesBuffers[1-_curReadBuffer]);
     //GLfloat data[14 * 3];
@@ -212,25 +225,25 @@ void ParticleSystem::renderParticles()
 
     _programRender.useProgram();
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(0);
-
     glDisable(GL_RASTERIZER_DISCARD);
+    
     glDisable(GL_DEPTH_TEST);
-    glClearColor(0.5f, 0.5f, 0.5f, 0.5);
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClearDepth(1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glDepthMask(0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
     _programRender.setUniform("texRowCount", _texture.rowCount());
     _programRender.setUniform("texColumnCount", _texture.columnCount());
-    _programRender.setUniform("mView", _mView);
-    _programRender.setUniform("mProj", _mProj);
+    _programRender.setUniform("mView", mView);
+    _programRender.setUniform("mProj", mProj);
     _programRender.setUniform("quad1", _quad1);
     _programRender.setUniform("quad2", _quad2);
-    _programRender.setUniform("sampler", _texture.textureUnit());
-
-    _texture.bindTexture(0);
+    _programRender.setUniform("tSampler", _texture.textureUnit());
 
     glBindVertexArray(_VAOs[_curReadBuffer]);
     //glDisableVertexAttribArray(0);
@@ -238,8 +251,8 @@ void ParticleSystem::renderParticles()
 
     glDrawArrays(GL_POINTS, 0, _maxParticlesCount);
 
-    //glDepthMask(1);
-    //glDisable(GL_BLEND);
+    glDisable(GL_BLEND);
+    glDepthMask(1);
 }
 
 void ParticleSystem::setMaxParticlesCount(int maxParticlesCount)
@@ -247,70 +260,18 @@ void ParticleSystem::setMaxParticlesCount(int maxParticlesCount)
     _maxParticlesCount = maxParticlesCount;
 }
 
-void ParticleSystem::setEmitterPosition(vec3 emitterPosition)
-{
-    _emitterPosition = emitterPosition;
-}
-
-void ParticleSystem::setEmitterRadius(vec3 emitterRadius)
-{
-    _emitterRadius = emitterRadius;
-}
-
-void ParticleSystem::setMinVelocity(vec3 minVelocity)
-{
-    _minVelocity = minVelocity;
-}
-
-void ParticleSystem::setVelocityRange(vec3 velocityRange)
-{
-    _velocityRange = velocityRange;
-}
-
-void ParticleSystem::setGravity(vec3 gravity)
-{
-    _gravity = gravity;
-}
-
-void ParticleSystem::setMinLifeTime(float minLifeTime)
-{
-    _minLifeTime = minLifeTime;
-}
-
-void ParticleSystem::setMaxLifeTime(float maxLifeTime)
-{
-    _maxLifeTime = maxLifeTime;
-}
-
-void ParticleSystem::setMinSize(float minSize)
-{
-    _minSize = minSize;
-}
-
-void ParticleSystem::setMaxSize(float maxSize)
-{
-    _maxSize = maxSize;
-}
-
-void ParticleSystem::setInitColor(vec3 color)
-{
-    _initColor = color;
-}
-
-void ParticleSystem::setInitOpacity(float opacity)
-{
-    _initOpacity = opacity;
-}
-
 void ParticleSystem::setMatrices(mat4 mProj, vec3 eye, vec3 viewCenter, vec3 upVector, quat rotation)
 {
-    _mProj = mProj;
-    _mView = lookAt(eye, viewCenter, upVector); // *mat4_cast(rotation);
+    this->mProj = mProj;
+    mView = lookAt(eye, viewCenter, upVector); // *mat4_cast(rotation);
 
     vec3 viewDirection = viewCenter - eye;
     _quad1 = cross(viewDirection, upVector);
     _quad2 = cross(_quad1, viewDirection);
     _quad1 = normalize(_quad1);
     _quad2 = normalize(_quad2);
+
+    assert(_quad1 == vec3(1.0f, 0.0f, 0.0f));
+    assert(_quad2 == vec3(0.0f, 1.0f, 0.0f));
 }
 

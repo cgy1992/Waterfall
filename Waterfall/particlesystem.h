@@ -5,64 +5,62 @@
 #include "shaders.h"
 #include "texture.h"
 
-static const int PARTICLE_ATTRIBUTES_COUNT = 8;
-static const int SERIALIZED_PARTICLE_SIZE = 14; // 3 * sizeof(vec3) + 5 * sizeof(GLfloat);
+static const int PARTICLE_ATTRIBUTES_COUNT = 12;
 
 struct Particle
 {
-    Particle();
-
-    GLfloat initRand;
-    vec3 position;
-    vec3 velocity;
+    GLfloat randInit;
+    vec3 positionInit, position;
+    vec3 velocityInit, velocity;
     vec3 color;
     GLfloat fullLifeTime;
     GLfloat actualLifeTime;
-    GLfloat size;
+    GLfloat size, maxSize, minSize;
     GLfloat opacity;
+
+    static size_t serializedSize();
+    size_t serialize(GLfloat* buf);
 };
 
 class ParticleSystem
 {
     bool _isInitialized;
-    int _curReadBuffer;
 
-    vector<Particle> _particles;
+    size_t _maxParticlesCount;
+    size_t _particlesDataSize;
     GLfloat* _particlesData;
-    int _particlesDataSize;
-    int _maxParticlesCount;
 
-    vec3 _emitterPosition;
-    vec3 _emitterRadius;
-    vec3 _minVelocity;
-    vec3 _velocityRange;
-    vec3 _gravity;
-    float _minLifeTime;
-    float _maxLifeTime;
-    float _minSize;
-    float _maxSize;
-    vec3 _initColor;
-    float _initOpacity;
+    WShader _vertShaderUpdate, _geomShaderUpdate;
+    WProgram _programUpdate;
 
-    WShader _vertShaderUpdate, _geomShaderUpdate, _vertShaderRender, _geomShaderRender, _fragShaderRender;
-    WProgram _programUpdate, _programRender;
+    WShader _vertShaderRender, _geomShaderRender, _fragShaderRender;
+    WProgram _programRender;
 
+    size_t _curReadBuffer;
     GLuint _transformFeedbackBuffer;
     GLuint _particlesBuffers[2];
     GLuint _VAOs[2];
 
-    mat4 _mView, _mProj;
     vec3 _quad1, _quad2;
-    
-    Texture _texture;
-    TextureAtlas _textureAtlas;
+    TextureAtlas _texture;
+
+    void generateParticles();
 
 public:
+    vec3  emitterPosition, emitterVicinity;
+    vec3  averageVelocity, velocityVicinity;
+    vec3  gravity;
+    float minLifeTime, maxLifeTime;
+    float minSize, maxSize;
+    vec3  colorInit;
+    float opacityInit;
+    mat4 mView, mProj;
+
     ParticleSystem();
     ~ParticleSystem();
 
-    void initialize();
-    void generateParticles();
+    void initialize(size_t particlesCount);
+    void loadTextureAtlas(string const& fileName, size_t rowCount, size_t columnCount);
     
     void setMaxParticlesCount(int maxParticlesCount);
     void setEmitterPosition(vec3 emitterPosition);

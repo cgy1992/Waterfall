@@ -56,6 +56,8 @@ int main(int argc, char** argv)
 {
     std::cout << "Let get it started" << std::endl;
 
+    srand(time(NULL));
+
     size_t const default_width = 1024;
     size_t const default_height = 1024;
 

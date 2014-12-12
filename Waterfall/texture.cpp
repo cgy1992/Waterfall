@@ -44,7 +44,7 @@ bool Texture::loadTexture(const string& textureFileName, bool mipmapRequired, in
     char* pixeles = (char*)FreeImage_GetBits(dib);
     //FreeImage loads in BGR format, so you need to swap some bytes(Or use GL_BGR).
 
-    for (int j = 0; j<_width*_height; j++){
+    for (int j = 0; j<_width *_height; j++){
         textura[j * 4 + 0] = pixeles[j * 4 + 2];
         textura[j * 4 + 1] = pixeles[j * 4 + 1];
         textura[j * 4 + 2] = pixeles[j * 4 + 0];

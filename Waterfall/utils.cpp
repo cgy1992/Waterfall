@@ -1,52 +1,64 @@
 #include "utils.h"
 
-GLuint createShader(GLenum type, const string& fileName)
+
+float getRandom01(int precision)
 {
-    ifstream fin(fileName.c_str(), std::ios::binary);
-    string fileStr((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
-
-    GLuint const shader = glCreateShader(type);
-    char const* source = fileStr.c_str();
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-
-    GLint status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (!status) {
-        int infoLogLength;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-        if (infoLogLength > 0) {
-            string buffer;
-            buffer.resize(infoLogLength);
-            glGetShaderInfoLog(shader, infoLogLength, NULL, &buffer[0]);
-            throw std::runtime_error(buffer);
-        }
-    }
-
-    return shader;
+    return 1.0f * (rand() % precision) / precision;
 }
 
-GLuint createProgram(GLuint vs, GLuint gs, GLuint fs)
+float getRandomRange(float left, float right, int precision) 
 {
-    GLuint const program = glCreateProgram();
-    glAttachShader(program, vs);
-    glAttachShader(program, gs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
+    float r = left < right ? getRandom01(precision) : 1 - getRandom01(precision);
 
-    GLint status;
-    glGetProgramiv(program, GL_LINK_STATUS, &status);
-    if (!status) {
-        int infoLogLength;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
-        if (infoLogLength > 0) {
-            string buffer;
-            buffer.resize(infoLogLength);
-            glGetProgramInfoLog(program, infoLogLength, NULL, &buffer[0]);
-            throw std::runtime_error(buffer);
-        }
+    return left + r * (right - left);
+}
+
+float getRandomValueVicinity(float value, float vicinity, int precision)
+{
+    return getRandomRange(value - vicinity, value + vicinity, precision);
+}
+
+vec3 getRandom01Vec3(int precision)
+{
+    return vec3(
+        getRandom01(precision),
+        getRandom01(precision),
+        getRandom01(precision)
+        );
+}
+
+vec3 getRandomRangeVec3(vec3 left, vec3 right, int precision)
+{
+    return vec3(
+        getRandomRange(left.x, right.x, precision),
+        getRandomRange(left.y, right.y, precision),
+        getRandomRange(left.z, right.z, precision)
+        );
+}
+
+vec3 getRandomValueVicinityVec3(vec3 value, vec3 vicinity, int precision) {
+    return vec3(
+        getRandomValueVicinity(value.x, vicinity.x, precision),
+        getRandomValueVicinity(value.y, vicinity.y, precision),
+        getRandomValueVicinity(value.z, vicinity.z, precision)
+        );
+}
+
+size_t serializeGLfloat(GLfloat* buf, GLfloat value)
+{
+    *(buf) = value;
+
+    return sizeof(GLfloat);
+}
+
+size_t serializeVec3(GLfloat* buf, vec3 v)
+{
+    size_t offset = 0;
+    for (size_t i = 0; i < 3; ++i) {
+        GLfloat value = v[i];
+        *(buf + offset) = value;
+        offset += sizeof(GLfloat);
     }
 
-    return program;
-
+    return offset;
 }

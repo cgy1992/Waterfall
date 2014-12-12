@@ -16,7 +16,7 @@ enum TextureFiltering
     TEXTURE_FILTER_MIN_LINEAR_MIPMAP_LINEAR
 };
 
-class Texture
+class TextureAtlas
 {
     uint _width, _height, _bpp;
     GLuint _texture;
@@ -30,7 +30,7 @@ class Texture
     int _columnCount;
 
 public:
-    Texture();
+    TextureAtlas();
 
     bool loadTexture(const string& textureFileName, bool mipmapRequired, int rowCount, int columnCount);
     int rowCount();
@@ -40,19 +40,6 @@ public:
     void setFiltering(int magFilter, int minFilter);
 
     void releaseTexture();
-};
-
-class TextureAtlas : public Texture
-{
-    int _rowCount;
-    int _columnCount;
-
-public:
-    TextureAtlas(){}
-    TextureAtlas(Texture const & texture, int rowCount, int columnCount);
-
-    int getRowCount();
-    int getColumnCount();
 };
 
 #endif //TEXTURE_H

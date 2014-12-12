@@ -1,5 +1,7 @@
 #include "waterfallprogram.h"
 
+#define PARTICLES_COUNT 100
+
 WaterfallProgram::WaterfallProgram()
     : _lastFrameTP(chrono::system_clock::now())
 {
@@ -10,9 +12,8 @@ WaterfallProgram::WaterfallProgram()
 
 void WaterfallProgram::initParticleSystem()
 {
-    _particleSystem.setMaxParticlesCount(1000);
     setupParticleSystem();
-    _particleSystem.initialize();
+    _particleSystem.initialize(PARTICLES_COUNT);
 }
 
 void WaterfallProgram::initSettings()
@@ -20,18 +21,18 @@ void WaterfallProgram::initSettings()
     _cameraZPosition = 100;
     _cameraFOV = 60.0f;
 
-    _emitterPosition = vec3(0.0f, 0.0f, 0.0f);
-    _emitterRadius = vec3(3.0f, 3.0f, 3.0f);
-    _minVelocity = vec3(5.0f, 0.0f, 0.0f);
-    _velocityRange = vec3(10.0f, 15.f, 0.0f);
-    _gravity = vec3(0.0f, -9.8f, 0.0f);
+    _emitterPosition = vec3(0.0f, 50.0f, 0.0f);
+    _emitterVicinity   = vec3(50.0f, 0.0f, 0.0f);
+    _averageVelocity     = vec3(0.0f, 0.0f, 0.0f);
+    _velocityVicinity   = vec3(5.0f, 5.0f, 0.0f);
+    _gravity         = vec3(0.0f, -9.0f, 0.0f);
 
-    _minLifeTime = 1;
+    _minLifeTime = 3;
     _maxLifeTime = 7;
-    _minSize = 1;
-    _maxSize = 3;
+    _minSize = 5;
+    _maxSize = 10;
 
-    _particleColor = vec3(0.0f, 0.0f, 1.0f);
+    _particleColor = vec3(0.0f, 0.0f, 0.5f);
     _particleOpacity = 0.4f;
 }
 
@@ -54,9 +55,9 @@ void WaterfallProgram::initAntTweakBar()
     TwType vec3Type;
     vec3Type = TwDefineStruct("vec3Type", vec3Members, 3, sizeof(vec3), NULL, NULL);
     TwAddVarRW(bar, "Emitter Position", vec3Type, &_emitterPosition, NULL);
-    TwAddVarRW(bar, "Emitter Radius", vec3Type, &_emitterRadius, NULL);
-    TwAddVarRW(bar, "Min Velocity", vec3Type, &_minVelocity, NULL);
-    TwAddVarRW(bar, "Max Velocity", vec3Type, &_velocityRange, NULL);
+    TwAddVarRW(bar, "Emitter Radius", vec3Type, &_emitterVicinity, NULL);
+    TwAddVarRW(bar, "Min Velocity", vec3Type, &_averageVelocity, NULL);
+    TwAddVarRW(bar, "Max Velocity", vec3Type, &_velocityVicinity, NULL);
     TwAddVarRW(bar, "Gravity", vec3Type, &_gravity, NULL);
 
     TwAddVarRW(bar, "Min LifeTime", TW_TYPE_FLOAT, &_minLifeTime, "step=0.5");
@@ -65,22 +66,22 @@ void WaterfallProgram::initAntTweakBar()
     TwAddVarRW(bar, "Max Size", TW_TYPE_FLOAT, &_maxSize, "step=0.5");
 
     TwAddVarRW(bar, "Partice Color", TW_TYPE_COLOR3F, &_particleColor, NULL);
-    TwAddVarRW(bar, "Partice Opacity", TW_TYPE_FLOAT, &_particleOpacity, NULL);
+    TwAddVarRW(bar, "Partice Opacity", TW_TYPE_FLOAT, &_particleOpacity, "min=0 max=1 step=0.01");
 }
 
 void WaterfallProgram::setupParticleSystem()
 {
-    _particleSystem.setEmitterPosition(_emitterPosition);
-    _particleSystem.setEmitterRadius(_emitterRadius);
-    _particleSystem.setMinVelocity(_minVelocity);
-    _particleSystem.setVelocityRange(_velocityRange);
-    _particleSystem.setGravity(_gravity);
-    _particleSystem.setMinLifeTime(_minLifeTime);
-    _particleSystem.setMaxLifeTime(_maxLifeTime);
-    _particleSystem.setMinSize(_minSize);
-    _particleSystem.setMaxSize(_maxSize);
-    _particleSystem.setInitColor(_particleColor);
-    _particleSystem.setInitOpacity(_particleOpacity);
+    _particleSystem.emitterPosition = _emitterPosition;
+    _particleSystem.emitterVicinity = _emitterVicinity;
+    _particleSystem.averageVelocity = _averageVelocity;
+    _particleSystem.velocityVicinity = _velocityVicinity;
+    _particleSystem.gravity = _gravity;
+    _particleSystem.minLifeTime = _minLifeTime;
+    _particleSystem.maxLifeTime = _maxLifeTime;
+    _particleSystem.minSize = _minSize;
+    _particleSystem.maxSize = _maxSize;
+    _particleSystem.colorInit = _particleColor;
+    _particleSystem.opacityInit = _particleOpacity;
 }
 
 void WaterfallProgram::drawFrame()

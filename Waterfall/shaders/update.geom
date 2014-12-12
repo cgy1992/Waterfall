@@ -1,60 +1,45 @@
 #version 330
 
 layout (points) in;
-layout (points, max_vertices = 40) out;
+layout (points, max_vertices = 1) out;
 
-in float initRand[];
-in vec3  position[];
-in vec3  velocity[];
+in float randInit[];
+in vec3  positionInit[], position[];
+in vec3  velocityInit[], velocity[];
 in vec3  color[];
 in float fullLifeTime[];
 in float actualLifeTime[];
-in float size[];
+in float size[], minSize[], maxSize[];
 in float opacity[];
 
-out float initRandOut;
-out vec3  positionOut;
-out vec3  velocityOut;
+out float randInitOut;
+out vec3  positionInitOut, positionOut;
+out vec3  velocityInitOut, velocityOut;
 out vec3  colorOut;
 out float fullLifeTimeOut;
 out float actualLifeTimeOut;
-out float sizeOut;
+out float sizeOut, minSizeOut, maxSizeOut;
 out float opacityOut;
 
 uniform float timePassed;
-
-uniform vec3  emitterPosition;
-uniform vec3  emitterRadius;
 uniform vec3  gravity;
-
-uniform vec3  minVelocity;
-uniform vec3  velocityRange;
-
-uniform float minLifeTime;
-uniform float maxLifeTime;
-
-uniform float minSize;
-uniform float maxSize;
-
-uniform vec3  initColor;
-uniform float initOpacity;
 
 vec3 localSeed;
 
 float computeOpacity(float relativeLifeTime)
 {
-    if (relativeLifeTime < 0.4) {
-        return 0.4 + 1.5 * relativeLifeTime;
+    if (relativeLifeTime < 0.3) {
+        return 0.4 + 2 * relativeLifeTime;
     }
-    if (relativeLifeTime < 0.7) {
+    if (relativeLifeTime < 0.6) {
         return 1.0;
     }
     if (relativeLifeTime < 1) {
-        return 3.1 - 3.0 * relativeLifeTime;
+        return 2.5 - 2.5 * relativeLifeTime;
     }
 }
 
-float computeSize(float relativeLifeTime)
+float computeSize(float relativeLifeTime, float minSize, float maxSize)
 {
     return minSize + (maxSize - minSize) * relativeLifeTime;
 }
@@ -71,34 +56,26 @@ float random01()
     return res;
 }
 
-float randomFromVec3(vec3 data)
-{
-    return vec3(data.x * random01(), data.y * random01(), data.z * random01());
-}
 
 void main()
 {
-    initRandOut = initRand[0];
+    randInitOut = randInit[0];
+
     fullLifeTimeOut = fullLifeTime[0];
-    actualLifeTimeOut = actualLifeTime[0] + timePassed;
-    if (actualLifeTimeOut < fullLifeTimeOut) {
-        positionOut = position[0] + velocity[0] * timePassed + gravity * timePassed * timePassed / 2;
-        velocityOut = velocity[0] + gravity * timePassed;
-        colorOut = color[0];
-        
-        float relativeLifeTime = actualLifeTimeOut / fullLifeTimeOut;
-        sizeOut = computeSize(relativeLifeTime);
-        opacityOut = computeOpacity(relativeLifeTime);
-    }
-    else {
-        positionOut = emitterPosition + emitterRadius * initRandOut;
-        velocityOut = minVelocity + velocityRange * initRandOut;
-        colorOut = initColor;
-        fullLifeTimeOut = minLifeTime + (maxLifeTime - minLifeTime) * abs(initRandOut);
-        actualLifeTimeOut = 0;
-        sizeOut = minSize + (maxSize - minSize) * abs(initRandOut);
-        opacityOut = initOpacity;
-    }
+    actualLifeTimeOut = actualLifeTime[0] + timePassed < fullLifeTimeOut ? actualLifeTime[0] + timePassed : 0;
+    
+    float relativeLifeTime = actualLifeTimeOut / fullLifeTimeOut;
+
+    positionInitOut = positionInit[0];
+    velocityInitOut = velocityInit[0];
+    positionOut = positionInitOut + velocityInitOut * actualLifeTimeOut + gravity * pow(actualLifeTimeOut, 2) / 2;
+    velocityOut = velocityInitOut + gravity * actualLifeTimeOut;
+    
+    colorOut = color[0];
+    minSizeOut = minSize[0]; 
+    maxSizeOut = maxSize[0];
+    sizeOut = computeSize(relativeLifeTime, minSizeOut, maxSizeOut);
+    opacityOut = computeOpacity(relativeLifeTime);
 
     EmitVertex();
     EndPrimitive();
