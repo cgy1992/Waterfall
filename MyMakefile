@@ -1,0 +1,18 @@
+CXX = g++
+CXXFLAGS = -c -std=c++11 -Wall -W -stdlib=libc++
+LDFLAGS = -lAntTweakBar  -lGL -lFreeImage -lglew -lglfw3 -lglut -L/usr/X11R6/lib -lXext -lX11 -lXrandr -lXi -lXxf86vm -lpthread
+INCPATH = -I. -I./src -I./libs/AntTweakBar/include -I./libs/freeglut/include -I./libs/FreeImage/include -I./libs/glew/include -I./libs/glm
+SOURCES = src/main.cpp src/model.cpp src/particlesystem.cpp src/shaders.cpp src/texture.cpp src/utils.cpp src/waterfallprogram.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
+EXECUTABLE = waterfall
+
+all: $(SOURCES) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CXX) $(LDFLAGS) $(OBJECTS) -o $@
+
+.cpp.o:
+	$(CXX) $(CXXFLAGS) $(INCPATH) $< -o $@
+
+clean:
+	rm -f *.o waterfall
