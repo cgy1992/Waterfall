@@ -46,7 +46,7 @@ TextureCoords getTextureCoords(int texNum)
 
 void main()
 {
-    colorFragIn = vec4(color[0], opacity[0]);
+    colorFrag = vec4(color[0], opacity[0]);
     int texCount = texRowCount * texColumnCount;
     vec3 posCenter = gl_in[0].gl_Position.xyz;
     mat4 mVP = mProj * mView;

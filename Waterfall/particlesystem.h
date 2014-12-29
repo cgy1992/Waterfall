@@ -5,21 +5,23 @@
 #include "shaders.h"
 #include "texture.h"
 
-static const size_t PARTICLE_ATTRIBUTES_COUNT = 12;
-static const size_t PARTICLE_SERIALIZED_GLFLOAT_COUNT = 22;
+static const size_t PARTICLE_ATTRIBUTES_COUNT = 9;
+static const size_t PARTICLE_SERIALIZED_GLFLOAT_COUNT = 15;
 
 struct Particle
 {
     GLfloat randInit;
-    vec3 positionInit, position;
-    vec3 velocityInit, velocity;
+    vec3 positionInit;
+    vec3 velocityInit;
     vec3 color;
     GLfloat fullLifeTime;
     GLfloat actualLifeTime;
-    GLfloat size, maxSize, minSize;
+    GLfloat maxSize;
+    GLfloat minSize;
     GLfloat opacity;
 
-    static size_t serializedSize();
+    static size_t serializedByteSize();
+    static size_t serializedFloatSize();
     size_t serialize(GLfloat* buf);
 };
 
@@ -31,16 +33,11 @@ class ParticleSystem
     size_t _particlesDataSize;
     GLfloat* _particlesData;
 
-    WShader _vertShaderUpdate, _geomShaderUpdate;
-    WProgram _programUpdate;
-
     WShader _vertShaderRender, _geomShaderRender, _fragShaderRender;
     WProgram _programRender;
 
-    size_t _curReadBuffer;
-    GLuint _transformFeedbackBuffer;
-    GLuint _particlesBuffers[2];
-    GLuint _VAOs[2];
+    GLuint _particlesBuffer;
+    GLuint _particlesVAO;
 
     vec3 _quad1, _quad2;
     TextureAtlas _texture;
@@ -66,8 +63,7 @@ public:
     void setMaxParticlesCount(int maxParticlesCount);
     void setMatrices(mat4 mProj, vec3 camera, vec3 view, vec3 upVector, quat rotation);
 
-    void updateParticles(float timePassed);
-    void renderParticles();
+    void renderParticles(float timePassed);
 };
 
 #endif //PARTICLE_SYSTEM_H

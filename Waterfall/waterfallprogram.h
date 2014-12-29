@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "particlesystem.h"
+#include "model.h"
 
 class WaterfallProgram
 {
@@ -26,11 +27,13 @@ class WaterfallProgram
     float _particleOpacity;
 
     ParticleSystem _particleSystem;
+    Model _rock;
 
     void initSettings();
     void initAntTweakBar();
     void initParticleSystem();
     void setupParticleSystem();
+    void initModel();
 
 public:
     WaterfallProgram();

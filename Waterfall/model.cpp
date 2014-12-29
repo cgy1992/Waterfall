@@ -94,3 +94,42 @@ vec3 Model::read_vertex3(stringstream &in)
     return vec3(x, y, z);
 }
 
+void Model::initialize()
+{
+    glGenBuffers(1, &buffer_);
+    glGenVertexArrays(1, &vao_);
+
+    glBindVertexArray(vao_);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer_);
+
+    glBufferData(GL_ARRAY_BUFFER, vertices_.size() * 3 * sizeof(GLfloat), &vertices_[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+
+    glBindVertexArray(0);
+
+    vertShaderRender_.createShader(GL_VERTEX_SHADER, "shaders//rock.vert");
+    fragShaderRender_.createShader(GL_FRAGMENT_SHADER, "shaders//rock.frag");
+
+    programRender_.createProgram();
+    programRender_.addShader(&vertShaderRender_);
+    programRender_.addShader(&fragShaderRender_);
+    programRender_.linkProgram();
+}
+
+void Model::draw()
+{
+    programRender_.useProgram();
+    programRender_.setUniform("mvp", mvp_);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glClearColor(0.5f, 0.5f, 0.5f, 1);
+    glClearDepth(1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindVertexArray(vao_);
+    glDrawArrays(GL_TRIANGLES, 0, vertices_.size());
+    glBindVertexArray(0);
+}
+

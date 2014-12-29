@@ -62,7 +62,7 @@ void main()
     randInitOut = randInit[0];
 
     fullLifeTimeOut = fullLifeTime[0];
-    actualLifeTimeOut = actualLifeTime[0] + timePassed < fullLifeTimeOut ? actualLifeTime[0] + timePassed : 0;
+    actualLifeTimeOut = mod(actualLifeTime[0] + timePassed, fullLifeTimeOut);//actualLifeTime[0] + timePassed < fullLifeTimeOut ? actualLifeTime[0] + timePassed : 0;
     
     float relativeLifeTime = actualLifeTimeOut / fullLifeTimeOut;
 

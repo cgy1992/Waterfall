@@ -1,6 +1,6 @@
 #include "waterfallprogram.h"
 
-#define PARTICLES_COUNT 10000
+#define PARTICLES_COUNT 1000
 
 WaterfallProgram::WaterfallProgram()
     : _lastFrameTP(chrono::system_clock::now())
@@ -8,6 +8,7 @@ WaterfallProgram::WaterfallProgram()
     initSettings();
     initAntTweakBar();
     initParticleSystem();
+    initModel();
 }
 
 void WaterfallProgram::initParticleSystem()
@@ -24,16 +25,16 @@ void WaterfallProgram::initSettings()
     _cameraZPosition = 100;
     _cameraFOV = 60.0f;
 
-    _emitterPosition  = vec3(0.0f, 50.0f, 0.0f);
-    _emitterVicinity  = vec3(10.0f, 0.0f, 0.0f);
-    _averageVelocity  = vec3(0.0f, -10.0f, 0.0f);
-    _velocityVicinity = vec3(10.0f, 0.0f, 0.0f);
+    _emitterPosition  = vec3(0.0f, -20.0f, 0.0f);
+    _emitterVicinity  = vec3(0.0f, 0.0f, 0.0f);
+    _averageVelocity  = vec3(0.0f, 0.0f, 0.0f);
+    _velocityVicinity = vec3(5.0f, 0.0f, 0.0f);
     _gravity          = vec3(0.0f, -9.0f, 0.0f);
 
     _minLifeTime = 3;
-    _maxLifeTime = 7;
-    _minSize = 0.2;
-    _maxSize = 0.5;
+    _maxLifeTime = 5;
+    _minSize = 0.5;
+    _maxSize = 2;
 
     _particleColor = vec3(0.0f, 1.0f, 1.0f);
     _particleOpacity = 0.4f;
@@ -87,11 +88,16 @@ void WaterfallProgram::setupParticleSystem()
     _particleSystem.opacityInit = _particleOpacity;
 }
 
+void WaterfallProgram::initModel()
+{
+    _rock.load("models//model.obj");
+    _rock.initialize();
+}
+
 void WaterfallProgram::drawFrame()
 {
     setupParticleSystem();
     float timePassed = updateTimer();
-    _particleSystem.updateParticles(timePassed);
 
     float const width = (float)glutGet(GLUT_WINDOW_WIDTH);
     float const height = (float)glutGet(GLUT_WINDOW_HEIGHT);
@@ -101,15 +107,21 @@ void WaterfallProgram::drawFrame()
     vec3 viewCenter = vec3(0, 0, 0);
     vec3 upVector = vec3(0, 1, 0);
 
+    mat4 mView = lookAt(cameraPosition, viewCenter, upVector);
+    mat4 mMVP = mProj * mView;
+
+    _rock.mvp_ = mMVP;
+    _rock.draw();
+
     _particleSystem.setMatrices(mProj, cameraPosition, viewCenter, upVector, _rotation);
-    _particleSystem.renderParticles();
+    _particleSystem.renderParticles(timePassed);
 }
 
 float WaterfallProgram::updateTimer()
 {
     chrono::system_clock::time_point now = chrono::system_clock::now();
     float timePassed = chrono::duration<float>(now - _lastFrameTP).count();
-    _lastFrameTP = now;
+    //_lastFrameTP = now;
 
     return timePassed;
 }

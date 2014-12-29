@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include <sstream>
+#include "shaders.h"
 
 using std::stringstream;
 
@@ -13,6 +14,13 @@ typedef vector<mat3> vmat3;
 
 struct Model
 {
+    GLuint buffer_;
+    GLuint vao_;
+    mat4 mvp_;
+
+    WShader vertShaderRender_, fragShaderRender_;
+    WProgram programRender_;
+
     string path_;
 
     vvec3 vertices_;
@@ -30,6 +38,8 @@ struct Model
     size_t vertices_count() const;
 
     void load(string const& path);
+    void initialize();
+    void draw();
 };
 
 #endif //MODEL_H
