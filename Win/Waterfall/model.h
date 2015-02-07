@@ -5,7 +5,7 @@
 #include "shaders.h"
 #include "texture.h"
 #include "tiny_obj_loader.h"
-
+#include "settings.h"
 
 class Model
 {
@@ -18,13 +18,11 @@ class Model
     vector<tinyobj::material_t> materials_;
     
     Texture texture_;
-    
-    mat4 mvp_;
 
 public:
     void load(string const& objFilePath, string const& textureFilePath);
     void setMVP(mat4 const& mvp);
-    void render();
+    void render(SceneSettings const& settings);
 };
 
 #endif //MODEL_H

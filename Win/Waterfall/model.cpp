@@ -2,17 +2,12 @@
 #include "utils.h"
 
 
-void Model::setMVP(mat4 const& mvp)
-{
-    mvp_ = mvp;
-}
-
-void Model::render()
+void Model::render(SceneSettings const& settings)
 {
     texture_.bindTexture(0);
     
     programRender_.useProgram();
-    programRender_.setUniform("mvp", mvp_);
+    programRender_.setUniform("mvp", settings.MVP);
     programRender_.setUniform("tSampler", 0);
     
     glEnable(GL_DEPTH_TEST);

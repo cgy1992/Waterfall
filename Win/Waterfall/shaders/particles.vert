@@ -22,8 +22,6 @@ out float gOpacityInit;
 
 void main()
 {
-    gl_Position = vec4(vPositionInit, 1.0f);
-
     gRandInit = vRandInit;
     gPositionInit = vPositionInit;
     gVelocityInit = vVelocityInit;

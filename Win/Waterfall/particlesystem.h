@@ -4,6 +4,7 @@
 #include "common.h"
 #include "shaders.h"
 #include "texture.h"
+#include "settings.h"
 
 static const size_t PARTICLE_ATTRIBUTES_COUNT = 9;
 static const size_t PARTICLE_SERIALIZED_GLFLOAT_COUNT = 15;
@@ -29,7 +30,7 @@ class ParticleSystem
 {
     bool _isInitialized;
 
-    size_t _maxParticlesCount;
+    int particlesCount_;
     size_t _particlesDataSize;
     GLfloat* _particlesData;
 
@@ -39,33 +40,21 @@ class ParticleSystem
     GLuint _particlesBuffer;
     GLuint _particlesVAO;
 
-    vec3 _quad1, _quad2;
     TextureAtlas textureParticle_;
+    Texture textureNormal_;
+    Texture textureSpecular_;
     Texture textureBackground_;
     Texture textureRefract_;
 
-    void generateParticles();
+    void generateParticles(ParticleSystemSettings const& settings);
+    void texturesInit();
 
 public:
-    vec3  emitterPosition, emitterVicinity;
-    vec3  averageVelocity, velocityVicinity;
-    vec3  gravity;
-    float minLifeTime, maxLifeTime;
-    float minSize, maxSize;
-    vec3  colorInit;
-    float opacityInit;
-    mat4 mView, mProj;
-
     ParticleSystem();
     ~ParticleSystem();
 
-    void initialize(size_t particlesCount);
-    void loadTextureAtlas(string const& fileName, size_t rowCount, size_t columnCount);
-    
-    void setMaxParticlesCount(int maxParticlesCount);
-    void setMatrices(mat4 mProj, vec3 camera, vec3 view, vec3 upVector);
-
-    void renderParticles(float timePassed, int width, int height);
+    void initialize(ParticleSystemSettings const& settings);
+    void renderParticles(float timePassed, SceneSettings const& settings);
 };
 
 #endif //PARTICLE_SYSTEM_H

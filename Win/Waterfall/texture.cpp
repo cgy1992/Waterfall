@@ -11,7 +11,7 @@ void TextureAtlas::init()
         glGenSamplers(1, &_sampler);
 }
 
-bool TextureAtlas::loadTexture(const string& textureFileName, bool mipmapRequired, int rowCount, int columnCount)
+bool TextureAtlas::loadTexture(const string& textureFileName, int rowCount, int columnCount)
 {
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
     FIBITMAP* dib = NULL;
@@ -52,27 +52,18 @@ bool TextureAtlas::loadTexture(const string& textureFileName, bool mipmapRequire
 
     GLubyte* textura = new GLubyte[4 * _width*_height];
     char* pixeles = (char*)FreeImage_GetBits(dib);
-    //FreeImage loads in BGR format, so you need to swap some bytes(Or use GL_BGR).
 
     for (int j = 0; j<_width *_height; j++){
         textura[j * 4 + 0] = pixeles[j * 4 + 2];
         textura[j * 4 + 1] = pixeles[j * 4 + 1];
         textura[j * 4 + 2] = pixeles[j * 4 + 0];
         textura[j * 4 + 3] = pixeles[j * 4 + 3];
-        //cout<<j<<": "<<textura[j*4+0]<<"**"<<textura[j*4+1]<<"**"<<textura[j*4+2]<<"**"<<textura[j*4+3]<<endl;
     }
 
-//    glGenTextures(1, &_texture);
     glBindTexture(GL_TEXTURE_2D, _texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)textura);
-
-    if (mipmapRequired) {
-        glGenerateMipmap(GL_TEXTURE_2D);
-        _mipmapGenerated = true;
-    }
     
     FreeImage_Unload(dib);
-//    glGenSamplers(1, &_sampler);
 
     _textureUnit = 0;
     _textureFileName = textureFileName;
@@ -147,8 +138,6 @@ void TextureAtlas::releaseTexture()
 
 Texture::Texture()
 {
-//    glGenTextures(1, &texture_);
-//    glGenSamplers(1, &sampler_);
 }
 
 void Texture::init()
@@ -187,8 +176,7 @@ void Texture::loadTexture(const string&texFilename)
     bpp_ = FreeImage_GetBPP(dib32);
 
     textureUnit_ = 0;
-//    glGenSamplers(1, &sampler_);
-//    glGenTextures(1, &texture_);
+
     glBindTexture(GL_TEXTURE_2D, texture_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_BGRA, GL_UNSIGNED_BYTE, (GLvoid*)data);
     glBindTexture(GL_TEXTURE_2D, 0);

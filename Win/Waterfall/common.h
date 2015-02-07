@@ -30,5 +30,6 @@ namespace chrono = std::chrono;
 using namespace glm;
 
 #include <FreeImage.h>
+#include <AntTweakBar.h>
 
 #endif //COMMON_H

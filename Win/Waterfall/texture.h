@@ -34,7 +34,7 @@ public:
     
     void init();
 
-    bool loadTexture(const string& textureFileName, bool mipmapRequired, int rowCount, int columnCount);
+    bool loadTexture(const string& textureFileName, int rowCount, int columnCount);
     int rowCount();
     int columnCount();
     void bindTexture(int textureUnit);

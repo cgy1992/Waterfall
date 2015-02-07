@@ -7,19 +7,36 @@
 #include "model.h"
 #include "particlesystem.h"
 
+#include "lightedtexture.h"
+
 class WaterfallScene
 {
     int width_, height_;
-
     chrono::system_clock::time_point lastFrameTP_;
 
+    TwBar* bar_;
+
+    ParticleSystemSettings psSettings_;
+    SceneSettings sceneSettings_;
+
+    LightedTexture ltexture_;
     SkyBox skyBox_;
     Model mountain_;
     ParticleSystem particleSystem_;
 
     static void error_callback(int error, const char* description);
-    
+
+    void setupDefaultSettings();
+    void setupAntTweakBarSettings();
+
+    float updateTimer();
+
+    void ATBInit();
+
     void clearBuffers();
+    void drawSkybox();
+    void drawMountain();
+    void drawParticles();
 
 public:
     static Camera camera;
@@ -32,12 +49,8 @@ public:
     WaterfallScene();
     ~WaterfallScene();
     
-    void load();
-
-    float updateTimer();
-    void initParticleSystem();
-    void setupParticleSystem();
-
+    void regenerateParticles();
+    void initialize();
     void drawFrame();
     void run();
 };

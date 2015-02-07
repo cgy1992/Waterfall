@@ -38,18 +38,20 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\novokrestWin\Desktop\CompGraphic\ext\FreeImage\include;C:\Users\novokrestWin\Desktop\CompGraphic\ext\AntTweakBar\include;C:\Users\novokrestWin\Desktop\CompGraphic\ext\freeglut\include;C:\Users\novokrestWin\Desktop\CompGraphic\ext\glew-1.10.0\include;C:\Users\novokrestWin\Desktop\CompGraphic\ext\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glm;C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glew-1.10.0\include;C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\FreeImage\include;C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\freeglut\include;C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\AntTweakBar\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\novokrestWin\Desktop\CompGraphic\ext\FreeImage\lib;C:\Users\novokrestWin\Desktop\CompGraphic\ext\glew-1.10.0\lib\Release\Win32;C:\Users\novokrestWin\Desktop\CompGraphic\ext\freeglut\lib;C:\Users\novokrestWin\Desktop\CompGraphic\ext\AntTweakBar\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glew-1.10.0\lib\Release\Win32;C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\FreeImage\lib;C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\freeglut\lib;C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\AntTweakBar\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;freeglut.lib;glew32.lib;AntTweakBar.lib;FreeImage.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ProjectReference>
@@ -72,6 +74,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="lightedtexture.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="particlesystem.cpp" />
@@ -85,8 +88,11 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="light.h" />
+    <ClInclude Include="lightedtexture.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="particlesystem.h" />
+    <ClInclude Include="settings.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="skybox.h" />
     <ClInclude Include="texture.h" />
@@ -95,6 +101,8 @@
     <ClInclude Include="waterfall.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\lightedtexture.frag" />
+    <None Include="shaders\lightedtexture.vert" />
     <None Include="shaders\model.frag" />
     <None Include="shaders\model.vert" />
     <None Include="shaders\particles.frag" />

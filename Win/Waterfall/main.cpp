@@ -1,20 +1,22 @@
 #include "common.h"
 #include "waterfall.h"
-#include <iostream>
-#include <cstring>
-#include <iostream>
-#include <fstream>
-#include <memory>
-#include <chrono>
-
-using std::string;
-using std::ifstream;
+#include "camera.h"
+#include "light.h"
 
 std::unique_ptr<WaterfallScene> gWaterfallScene;
+std::unique_ptr<Camera> gCamera;
+std::unique_ptr<Light> gLight;
+
+void regenerateParticlesCallback(void*)
+{
+//    gWaterfallScene->regenerateParticles();
+}
 
 void displayFunc()
 {
     gWaterfallScene->drawFrame();
+
+    TwDraw();
 
     glutSwapBuffers();
 }
@@ -26,6 +28,10 @@ void idleFunc()
 
 void mousebuttonFunc(int button, int state, int x, int y)
 {
+    if (TwEventMouseButtonGLUT(button, state, x, y)) {
+        return;
+    }
+
     if (state == GLUT_DOWN) {
         if (button == GLUT_LEFT_BUTTON) {
             WaterfallScene::isLeftPressed = true;
@@ -49,6 +55,10 @@ void mousebuttonFunc(int button, int state, int x, int y)
 
 void mousemotionFunc(int xpos, int ypos)
 {
+    if (TwEventMouseMotionGLUT(xpos, ypos)) {
+        return;
+    }
+
     if (WaterfallScene::isLeftPressed) {
         WaterfallScene::camera.changeHeadingAngle(-(xpos - WaterfallScene::lastX));
         WaterfallScene::lastX = xpos;
@@ -61,6 +71,10 @@ void mousemotionFunc(int xpos, int ypos)
 
 void keyboardFunc(unsigned char button, int x, int y)
 {
+    if (TwEventKeyboardGLUT(button, x, y)) {
+        return;
+    }
+
     switch (button) {
     case 'q':
         WaterfallScene::camera.rotateUp(5.f);
@@ -104,6 +118,7 @@ void reshapeFunc(int width, int height)
         return;
     }
     glViewport(0, 0, width, height);
+    TwWindowSize(width, height);
 }
 
 void closeFunc()
@@ -140,14 +155,17 @@ int main(int argc, char** argv)
     glutDisplayFunc(displayFunc);
     glutIdleFunc(idleFunc);
     glutCloseFunc(closeFunc);
+
     glutKeyboardFunc(keyboardFunc);
     glutMouseFunc(mousebuttonFunc);
     glutMotionFunc(mousemotionFunc);
     glutPassiveMotionFunc(mousemotionFunc);
+    glutSpecialFunc((GLUTspecialfun)TwEventSpecialGLUT);
+    TwGLUTModifiersFunc(glutGetModifiers);
 
     try {
         gWaterfallScene.reset(new WaterfallScene());
-        gWaterfallScene->load();
+        gWaterfallScene->initialize();
         glutMainLoop();
     }
     catch (std::exception const& except) {

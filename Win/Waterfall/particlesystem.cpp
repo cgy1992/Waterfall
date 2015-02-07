@@ -2,6 +2,13 @@
 #include "common.h"
 #include "utils.h"
 
+static const int PARTICLE_SYSTEM_TEXTUREATLAS_PARTICLE_ROW_COUNT = 4;
+static const int PARTICLE_SYSTEM_TEXTUREATLAS_PARTICLE_COLUMN_COUNT = 4;
+static const string PARTICLE_SYSTEM_TEXTUREATLAS_PARTICLE_FILENAME = "textures//water_sprite.png";
+static const string PARTICLE_SYSTEM_TEXTURE_NORMAL_FILENAME = "textures//wavemap2.png";
+static const string PARTICLE_SYSTEM_TEXTURE_SPECULAR_FILENAME = "textures//specular.jpg";
+static const string PARTICLE_SYSTEM_TEXTURE_REFRACT_FILENAME = "textures//wavemap2.png";
+
 size_t Particle::serializedByteSize()
 {
     static const size_t serializedSize =
@@ -44,7 +51,6 @@ size_t Particle::serialize(GLfloat* buf)
 
 ParticleSystem::ParticleSystem()
     : _isInitialized(false)
-    , _maxParticlesCount(0)
     , _particlesDataSize(0)
     , _particlesData(NULL)
 {
@@ -57,35 +63,24 @@ ParticleSystem::~ParticleSystem()
     }
 }
 
-void ParticleSystem::loadTextureAtlas(string const& fileName, size_t rowCount, size_t columnCount)
+void ParticleSystem::generateParticles(ParticleSystemSettings const& settings)
 {
-    textureParticle_.init();
-    textureParticle_.loadTexture(fileName, false, rowCount, columnCount);
-//    textureParticle_.bindTexture(0);
-    textureParticle_.setFiltering(TEXTURE_FILTER_MAG_LINEAR, TEXTURE_FILTER_MIN_LINEAR);
-}
-
-void ParticleSystem::generateParticles()
-{
-    if (_maxParticlesCount <= 0) {
-        throw std::runtime_error("Try to generate non-positive count of particles...");
-    }
-
-    _particlesDataSize = PARTICLE_SERIALIZED_GLFLOAT_COUNT * _maxParticlesCount;
-    _particlesData     = new GLfloat[_particlesDataSize];
+    particlesCount_ = settings.particlesCount;
+    _particlesDataSize = PARTICLE_SERIALIZED_GLFLOAT_COUNT * settings.particlesCount;
+    _particlesData = new GLfloat[_particlesDataSize];
 
     size_t offset = 0;
     int RAND_PRECISION = RAND_MAX;
-    for (size_t p = 0; p < _maxParticlesCount; ++p) {
+    for (size_t p = 0; p < particlesCount_; ++p) {
         Particle particle;
         particle.randInit = getRandomRange(-1, 1, RAND_PRECISION);
-        particle.positionInit = getRandomValueVicinityVec3(emitterPosition, emitterVicinity, RAND_PRECISION);
-        particle.velocityInit = getRandomValueVicinityVec3(averageVelocity, velocityVicinity, RAND_PRECISION);
-        particle.color = colorInit;// * getRandom01Vec3(RAND_PRECISION);
-        particle.fullLifeTime = getRandomRange(minLifeTime, maxLifeTime, RAND_PRECISION);
+        particle.positionInit = getRandomValueVicinityVec3(settings.emitterPosition_Average, settings.emitterPosition_Vicinity, RAND_PRECISION);
+        particle.velocityInit = getRandomValueVicinityVec3(settings.velocity_Average, settings.velocity_Vicinity, RAND_PRECISION);
+        particle.color = settings.color;
+        particle.fullLifeTime = getRandomRange(settings.minLifeTime, settings.maxLifeTime, RAND_PRECISION);
         particle.actualLifeTime = particle.fullLifeTime * getRandom01(RAND_PRECISION);
-        particle.minSize = minSize + (maxSize - minSize) * getRandomRange(0, 0.5, RAND_PRECISION);
-        particle.maxSize = maxSize + (maxSize - minSize) * getRandomRange(0, 0.5, RAND_PRECISION);
+        particle.minSize = settings.minSize + (settings.maxSize - settings.minSize) * getRandomRange(0, 0.5, RAND_PRECISION);
+        particle.maxSize = settings.maxSize + (settings.maxSize - settings.minSize) * getRandomRange(0, 0.5, RAND_PRECISION);
         particle.opacity = 0;
 
         offset += particle.serialize(_particlesData + offset);
@@ -94,14 +89,15 @@ void ParticleSystem::generateParticles()
     assert(offset == _particlesDataSize);
 }
 
-void ParticleSystem::initialize(size_t particlesCount)
+void ParticleSystem::initialize(ParticleSystemSettings const& settings)
 {
     if (_isInitialized) {
-        return;
+        glDeleteBuffers(1, &_particlesBuffer);
+        glDeleteVertexArrays(1, &_particlesVAO);
+        delete _particlesData;
     }
 
-    _maxParticlesCount = particlesCount;
-    generateParticles();
+    generateParticles(settings);
 
     const char* varyings[PARTICLE_ATTRIBUTES_COUNT] = {
         "vRandInit",
@@ -147,24 +143,34 @@ void ParticleSystem::initialize(size_t particlesCount)
 
     glBindVertexArray(0);
 
-    _isInitialized = true;
+    texturesInit();
 
-//    textureParticle_.loadTexture("textures//wavemap.png");
-//    textureParticle_.setFiltering(TEXTURE_FILTER_MIN_LINEAR, TEXTURE_FILTER_MAG_LINEAR);
-    
+    _isInitialized = true;
+}
+
+void ParticleSystem::texturesInit()
+{
+    textureParticle_.init();
+    textureParticle_.loadTexture(PARTICLE_SYSTEM_TEXTUREATLAS_PARTICLE_FILENAME, PARTICLE_SYSTEM_TEXTUREATLAS_PARTICLE_ROW_COUNT, PARTICLE_SYSTEM_TEXTUREATLAS_PARTICLE_COLUMN_COUNT);
+    textureParticle_.setFiltering(TEXTURE_FILTER_MAG_LINEAR, TEXTURE_FILTER_MIN_LINEAR);
+
+    textureNormal_.init();
+    textureNormal_.loadTexture(PARTICLE_SYSTEM_TEXTURE_NORMAL_FILENAME);
+    textureNormal_.setFiltering(TEXTURE_FILTER_MIN_LINEAR, TEXTURE_FILTER_MAG_LINEAR);
+
+    textureSpecular_.init();
+    textureSpecular_.loadTexture(PARTICLE_SYSTEM_TEXTURE_SPECULAR_FILENAME);
+    textureSpecular_.setFiltering(TEXTURE_FILTER_MIN_LINEAR, TEXTURE_FILTER_MAG_LINEAR);
+
     textureRefract_.init();
-    textureRefract_.loadTexture("textures//wavemap2.png");
+    textureRefract_.loadTexture(PARTICLE_SYSTEM_TEXTURE_REFRACT_FILENAME);
     textureRefract_.setFiltering(TEXTURE_FILTER_MIN_LINEAR, TEXTURE_FILTER_MAG_LINEAR);
-    
+
     textureBackground_.init();
 }
 
-void ParticleSystem::renderParticles(float timePassed, int width, int height)
+void ParticleSystem::renderParticles(float timePassed, SceneSettings const& settings)
 {
-    if (!_isInitialized) {
-        return;
-    }
-
     _programRender.useProgram();
 
     glDisable(GL_DEPTH_TEST);
@@ -173,54 +179,53 @@ void ParticleSystem::renderParticles(float timePassed, int width, int height)
     
     //glDepthMask(0);
     
-    textureBackground_.createFromBackground(0, 0, width, height);
+    cout << "Width: " << settings.width << " height: " << settings.height << endl;
+
+    textureBackground_.createFromBackground(0, 0, settings.width, settings.height);
     textureBackground_.setFiltering(TEXTURE_FILTER_MIN_LINEAR, TEXTURE_FILTER_MAG_LINEAR);
     textureBackground_.setSamplerProp(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     textureBackground_.setSamplerProp(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     textureParticle_.bindTexture(0);
-    textureBackground_.bindTexture(1);
-    textureRefract_.bindTexture(2);
+    textureNormal_.bindTexture(1);
+    textureSpecular_.bindTexture(2);
+    textureBackground_.bindTexture(3);
+    textureRefract_.bindTexture(4);
     
     _programRender.setUniform("timePassed", timePassed);
-    _programRender.setUniform("gravity", gravity);
+    _programRender.setUniform("gravity", settings.gravity);
+
     _programRender.setUniform("texRowCount", textureParticle_.rowCount());
     _programRender.setUniform("texColumnCount", textureParticle_.columnCount());
-    _programRender.setUniform("mView", mView);
-    _programRender.setUniform("mProj", mProj);
-    _programRender.setUniform("quad1", _quad1);
-    _programRender.setUniform("quad2", _quad2);
+
+    _programRender.setUniform("MVP", settings.MVP);
+    _programRender.setUniform("M", settings.M);
+    _programRender.setUniform("V", settings.V);
+    _programRender.setUniform("P", settings.P);
+
+    _programRender.setUniform("lightPosition_WorldSpace", settings.lightPosition_WorldSpace);
+    _programRender.setUniform("eyePosition_WorldSpace", settings.eyePosition_WorldSpace);
+    _programRender.setUniform("viewPosition_WorldSpace", settings.viewPosition_WorldSpace);
     
     _programRender.setUniform("tSamplerParticle", 0);
-    _programRender.setUniform("tSamplerBackground", 1);
-    _programRender.setUniform("tSamplerRefract", 2);
-    _programRender.setUniform("iScreenWidth", width);
-    _programRender.setUniform("iScreenHeight", height);
+    _programRender.setUniform("tSamplerNormal", 1);
+    _programRender.setUniform("tSamplerSpecular", 2);
+    _programRender.setUniform("tSamplerBackground", 3);
+    _programRender.setUniform("tSamplerRefract", 4);
+
+    _programRender.setUniform("lightColor", settings.lightColor);
+    _programRender.setUniform("lightPower", settings.lightPower);
+
+    _programRender.setUniform("iScreenWidth", settings.width);
+    _programRender.setUniform("iScreenHeight", settings.height);
 
     glBindVertexArray(_particlesVAO);
-    glDrawArrays(GL_POINTS, 0, _maxParticlesCount);
+    glDrawArrays(GL_POINTS, 0, particlesCount_);
     glBindVertexArray(0);
 
     //glDepthMask(1);
     
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
-}
-
-void ParticleSystem::setMaxParticlesCount(int maxParticlesCount)
-{
-    _maxParticlesCount = maxParticlesCount;
-}
-
-void ParticleSystem::setMatrices(mat4 mProj, vec3 cameraPosition, vec3 viewCenter, vec3 upVector)
-{
-    this->mProj = mProj;
-    mView = lookAt(cameraPosition, viewCenter, upVector);
-
-    vec3 viewDirection = viewCenter - cameraPosition;
-    _quad1 = cross(viewDirection, upVector);
-    _quad2 = cross(_quad1, viewDirection);
-    _quad1 = vec3(mView * vec4(normalize(_quad1), 0.f));
-    _quad2 = vec3(mView * vec4(normalize(_quad2), 0.f));
 }
 

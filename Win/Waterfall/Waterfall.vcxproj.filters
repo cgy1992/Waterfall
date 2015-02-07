@@ -45,6 +45,9 @@
     <ClCompile Include="camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lightedtexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">
@@ -75,6 +78,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lightedtexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -119,6 +131,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shaders\update.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\lightedtexture.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\lightedtexture.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

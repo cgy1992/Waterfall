@@ -1,6 +1,5 @@
 #include "skybox.h"
 
-
 void SkyBox::load(string const& dirPath)
 {
     const string TEXTURE_SKYBOX_FRONT  = dirPath + "//front.tga";
@@ -92,17 +91,12 @@ void SkyBox::load(string const& dirPath)
     renderProgram_.linkProgram();
 }
 
-void SkyBox::setMVP(mat4 const& mvp)
-{
-    mvp_ = mvp;
-}
-
-void SkyBox::render()
+void SkyBox::render(SceneSettings const& settings)
 {
     glDepthMask(0);
 
     renderProgram_.useProgram();
-    renderProgram_.setUniform("mvp", mvp_);
+    renderProgram_.setUniform("mvp", settings.MVP);
     renderProgram_.setUniform("tSampler", 0);
 
     glBindVertexArray(vao_);

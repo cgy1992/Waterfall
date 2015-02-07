@@ -4,6 +4,7 @@
 #include "common.h"
 #include "shaders.h"
 #include "texture.h"
+#include "settings.h"
 
 class SkyBox
 {
@@ -16,12 +17,10 @@ class SkyBox
 
     Texture textures_[6];
 
-    mat4 mvp_;
-
 public:
+    void initialize();
     void load(string const& dirPath);
-    void setMVP(mat4 const& mvp);
-    void render();
+    void render(SceneSettings const& settings);
 };
 
 #endif //SKYBOX_H
