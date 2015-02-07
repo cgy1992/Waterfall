@@ -178,8 +178,6 @@ void ParticleSystem::renderParticles(float timePassed, SceneSettings const& sett
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     //glDepthMask(0);
-    
-    cout << "Width: " << settings.width << " height: " << settings.height << endl;
 
     textureBackground_.createFromBackground(0, 0, settings.width, settings.height);
     textureBackground_.setFiltering(TEXTURE_FILTER_MIN_LINEAR, TEXTURE_FILTER_MAG_LINEAR);

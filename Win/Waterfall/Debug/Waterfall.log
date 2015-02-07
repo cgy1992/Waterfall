@@ -1,9 +1,10 @@
-﻿Build started 07.02.2015 14:54:53.
+﻿Build started 07.02.2015 15:17:27.
      1>Project "C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\Waterfall.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glm /I"C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glew-1.10.0\include" /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\FreeImage\include /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\freeglut\include /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\AntTweakBar\include /ZI /nologo /W3 /WX- /sdl- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt waterfall.cpp
-         waterfall.cpp
-     1>c:\users\novokrestwin\desktop\github\waterfall\win\waterfall\waterfall.cpp(91): warning C4244: 'argument' : conversion from 'const float' to 'int', possible loss of data
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glm /I"C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glew-1.10.0\include" /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\FreeImage\include /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\freeglut\include /IC:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\AntTweakBar\include /ZI /nologo /W3 /WX- /sdl- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt particlesystem.cpp
+         particlesystem.cpp
+     1>c:\users\novokrestwin\desktop\github\waterfall\win\waterfall\particlesystem.cpp(74): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\novokrestwin\desktop\github\waterfall\win\waterfall\particlesystem.cpp(182): warning C4244: 'argument' : conversion from 'const float' to 'int', possible loss of data
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Debug\Waterfall.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\glew-1.10.0\lib\Release\Win32" /LIBPATH:C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\FreeImage\lib /LIBPATH:C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\freeglut\lib /LIBPATH:C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Waterfall\lib\AntTweakBar\lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib freeglut.lib glew32.lib AntTweakBar.lib FreeImage.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Debug\Waterfall.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\novokrestWin\Desktop\Github\Waterfall\Win\Debug\Waterfall.lib" /MACHINE:X86 Debug\camera.obj
          Debug\lightedtexture.obj
@@ -21,4 +22,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.26
+Time Elapsed 00:00:02.49

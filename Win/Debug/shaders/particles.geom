@@ -13,10 +13,14 @@ in float gMinSize[];
 in float gMaxSize[];
 in float gOpacityInit[];
 
-out vec4  colorFrag;
-out vec2  texPrevCoord;
-out vec2  texNextCoord;
+out vec4 colorFrag;
+out vec2 texPrevCoord;
+out vec2 texNextCoord;
+out vec2 texCoord;
 out float texNextSimilarity;
+out vec3 lightDirection_TangentSpace;
+out vec3 eyeDirection_TangentSpace;
+out vec3 position_WorldSpace;
 
 uniform float timePassed;
 uniform vec3  gravity;
@@ -24,11 +28,16 @@ uniform vec3  gravity;
 uniform int texRowCount;
 uniform int texColumnCount;
 
-uniform mat4 mView;
-uniform mat4 mProj;
+uniform mat4 MVP;
+uniform mat4 M;
+uniform mat4 V;
+uniform mat4 P;
 
-uniform vec3 quad1;
-uniform vec3 quad2;
+uniform vec3 lightPosition_WorldSpace;
+uniform vec3 eyePosition_WorldSpace;
+uniform vec3 viewPosition_WorldSpace;
+
+uniform float curvature;
 
 float computeSize(float relativeLifeTime, float minSize, float maxSize)
 {
@@ -87,28 +96,49 @@ TextureCoords getTextureCoords(int texNum)
     return texCoords;
 }
 
+void emitParticle(vec3 positionCorner_CameraSpace, vec3 positionCenter_CameraSpace, vec3 lightDirection_CameraSpace, vec3 eyeDirection_CameraSpace)
+{
+    vec3 tangent_CameraSpace = vec3(1.0, 0.0, 0.0);
+    vec3 bitangent_CameraSpace = vec3(0.0, 1.0, 0.0);
+    vec3 normal_CameraSpace = mix(normalize(eyeDirection_CameraSpace), normalize(positionCorner_CameraSpace - positionCenter_CameraSpace), 0);
+    mat3 TBN = transpose(mat3(tangent_CameraSpace, bitangent_CameraSpace, normal_CameraSpace));
+
+    lightDirection_TangentSpace = TBN * lightDirection_CameraSpace;
+    eyeDirection_TangentSpace = TBN * eyeDirection_CameraSpace;
+
+    gl_Position = P * vec4(positionCorner_CameraSpace, 1.0);
+
+    EmitVertex();
+}
+
 void main()
 {
-    mat4 mVP = mProj;// * mView;
+    mat4 MV = V * M;
+    mat3 MV3x3 = mat3(MV);
 
-    float randInit = gRandInit[0];
-    vec3  positionInit = (mView * vec4(gPositionInit[0], 1.0)).xyz;
-    vec3  velocityInit = (mView * vec4(gVelocityInit[0], 0.0)).xyz;
-    vec3  colorInit = gColorInit[0];
+    vec3 positionInit_ModelSpace = gPositionInit[0].xyz;
+    vec3 velocityInit_ModelSpace = gVelocityInit[0].xyz;
+    
+    vec3 positionInit_CameraSpace = (MV * vec4(positionInit_ModelSpace, 1.0)).xyz;
+    vec3 velocityInit_CameraSpace = MV3x3 * velocityInit_ModelSpace;
+    vec3 gravity_CameraSpace = gravity;
+
     float fullLifeTime = gFullLifeTime[0];
     float actualLifeTime = mod(gActualLifeTime[0] + timePassed, fullLifeTime);
+    float relativeLifeTime = actualLifeTime / fullLifeTime;
+
+    vec3 positionCenter_CameraSpace = positionInit_CameraSpace + velocityInit_CameraSpace * actualLifeTime + gravity_CameraSpace * pow(actualLifeTime, 2) / 2;
+
     float minSize = gMinSize[0];
     float maxSize = gMaxSize[0];
     float opacityInit = gOpacityInit[0];
-    float relativeLifeTime = actualLifeTime / fullLifeTime;
+    vec3 colorInit = gColorInit[0];
 
-    vec3 position = positionInit + velocityInit * actualLifeTime + gravity * pow(actualLifeTime, 2) / 2;
     float size = computeSize(relativeLifeTime, minSize, maxSize);
-    float opacity = computeOpacity(relativeLifeTime);
-    
+    float opacity = computeOpacity(relativeLifeTime);    
     colorFrag = computeColor(relativeLifeTime, colorInit, opacity);
-    int texCount = texRowCount * texColumnCount;
 
+    int texCount = texRowCount * texColumnCount;
     float texNum = relativeLifeTime * texCount;
     int texPrevNum = int(floor(texNum)) % texCount; //textures enumerated from 0 to texCount - 1
     int texNextNum = (texPrevNum + 1) % texCount;
@@ -118,30 +148,38 @@ void main()
     TextureCoords texPrevCoords = getTextureCoords(texPrevNum);
     TextureCoords texNextCoords = getTextureCoords(texNextNum);
 
-    vec3 posCenter = position;
-    vec3 posLeftBottom = posCenter + (-quad1 - quad2) * size;
+    vec3 lightPosition_CameraSpace = (V * vec4(lightPosition_WorldSpace, 1.0)).xyz;
+    vec3 eyePosition_CameraSpace = vec3(0.f, 0.f, 0.f);
+
+    vec3 lightDirection_CameraSpace = lightPosition_CameraSpace - positionCenter_CameraSpace;
+    vec3 eyeDirection_CameraSpace = eyePosition_CameraSpace - positionCenter_CameraSpace;
+
+    vec3 quad1_CameraSpace = vec3(1.0, 0.0, 0.0);
+    vec3 quad2_CameraSpace = vec3(0.0, 1.0, 0.0);
+
+    vec3 positionLeftBottom_CameraSpace = positionCenter_CameraSpace + (-quad1_CameraSpace - quad2_CameraSpace) * size;
     texPrevCoord = texPrevCoords.leftBottom;
     texNextCoord = texNextCoords.leftBottom;
-    gl_Position = mVP * vec4(posLeftBottom, 1.0);
-    EmitVertex();
+    texCoord = vec2(0.0, 0.0);
+    emitParticle(positionLeftBottom_CameraSpace, positionCenter_CameraSpace, lightDirection_CameraSpace, eyeDirection_CameraSpace);
 
-    vec3 posLeftTop = posCenter + (-quad1 + quad2) * size;
+    vec3 positionLeftTop_CameraSpace = positionCenter_CameraSpace + (-quad1_CameraSpace + quad2_CameraSpace) * size;
     texPrevCoord = texPrevCoords.leftTop;
     texNextCoord = texNextCoords.leftTop;
-    gl_Position = mVP * vec4(posLeftTop, 1.0);
-    EmitVertex();
+    texCoord = vec2(0.0, 1.0);
+    emitParticle(positionLeftTop_CameraSpace, positionCenter_CameraSpace, lightDirection_CameraSpace, eyeDirection_CameraSpace);
 
-    vec3 posRightBottom = posCenter + (quad1 - quad2) * size;
+    vec3 positionRightBottom_CameraSpace = positionCenter_CameraSpace + (quad1_CameraSpace - quad2_CameraSpace) * size;
     texPrevCoord = texPrevCoords.rightBottom;
     texNextCoord = texNextCoords.rightBottom;
-    gl_Position = mVP * vec4(posRightBottom, 1.0);
-    EmitVertex();
+    texCoord = vec2(1.0, 0.0);
+    emitParticle(positionRightBottom_CameraSpace, positionCenter_CameraSpace, lightDirection_CameraSpace, eyeDirection_CameraSpace);
 
-    vec3 posRightTop = posCenter + (quad1 + quad2) * size;
+    vec3 positionRightTop_CameraSpace = positionCenter_CameraSpace + (quad1_CameraSpace + quad2_CameraSpace) * size;
     texPrevCoord = texPrevCoords.rightTop;
     texNextCoord = texNextCoords.rightTop;
-    gl_Position = mVP * vec4(posRightTop, 1.0);
-    EmitVertex();
+    texCoord = vec2(1.0, 1.0);
+    emitParticle(positionRightTop_CameraSpace, positionCenter_CameraSpace, lightDirection_CameraSpace, eyeDirection_CameraSpace);
 
     EndPrimitive();
 
